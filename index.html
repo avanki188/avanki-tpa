@@ -948,8 +948,8 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.12-1';
-const ONLINE = /^https?:$/.test(location.protocol);
+const APP_VER = '2026.11.12-2';
+const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
   if (!ONLINE) return;
@@ -2108,14 +2108,14 @@ function convFormHTML(P) {
   <div class="panel" data-scope="${P}"><div class="grid">
   ${fld('TPA/Profile', `<select class="in" data-k="${P}.profile" data-r="1">${optHTML(TPAS, c.profile, 'Chọn TPA/Profile')}</select>`)}
   ${c.upd ? '' : fld('Ngày lập dự phòng / Ngày thông báo', dtInp(P + '.date'))}</div>
-  <div class="bar" style="margin:12px 0">${chk(P + '.tpc', 'TPC', true)}</div>
+  ${c.upd ? '' : `<div class="bar" style="margin:12px 0">${chk(P + '.tpc', 'TPC', true)}</div>`}
   ${P === 'tool' ? '' : `<label class="box${c.upd ? ' on' : ''}"><input type="checkbox" data-mode="upd" data-change="convMode"${c.upd ? ' checked' : ''}${c.quarter || c.fix ? ' disabled' : ''}> <b>Update dữ liệu còn thiếu</b><br><span class="mut sm">Dò theo TPA + Số HSBT + Số hợp đồng. File có trường nào trong DOB, CCCD, Hình thức điều trị, Chẩn đoán, CSYT thì cập nhật trường đó; ô trống được giữ nguyên. Ngày tổn thất chỉ điền khi hồ sơ trên app đang trống.</span></label>`}
   <div class="grid" style="margin-top:12px">${filePick(P + '.file', c.fix ? 'File nguồn chuẩn' : 'File nguồn')}${c.fix ? filePick(P + '.fixFile', 'File báo lỗi') : ''}
   ${c.upd ? '' : noteIn}</div>
   ${c.upd ? '' : `<div class="box"><span class="mut sm">Xem trước Ghi chú</span><div class="prev" id="pvConv">${esc(np ? np.note : (convNote(c, true) || { note: '' }).note) || '—'}</div></div>`}
-  <div class="box"><span class="mut">DATA đang dùng: </span><b class="res-ok">${DB.data.rows.length} dòng DATA dùng chung</b> <a href="#" data-act="convData">Quản lý DATA</a></div>
+  ${c.upd ? '' : `<div class="box"><span class="mut">DATA đang dùng: </span><b class="res-ok">${DB.data.rows.length} dòng DATA dùng chung</b> <a href="#" data-act="convData">Quản lý DATA</a></div>`}
   <div class="act"><button class="btn ok" data-enter-btn data-act="convGo">${btn}</button></div></div></div>
-  <div>${convResultHTML(r)}<div class="panel"><p class="mut sm">Tra theo <b>Số đơn BH ↔ Số HĐ</b> trong DATA: <b>Đơn vị = Mã đơn vị · Phòng ban = Mã đơn vị bỏ số 1 đầu · Đối tượng bảo hiểm = Tên HĐ · Khách hàng = Mã KH</b>. Nếu <b class="warn">Ngày tổn thất nằm ngoài Hiệu lực</b> của Số HĐ, app dừng tạo FULL và xuất Excel lỗi để kiểm tra. FULL không có cột STT.</p></div></div></div>`;
+  <div>${convResultHTML(r)}${c.upd ? `<div class="panel"><p class="mut sm"><b>Update dữ liệu thiếu</b>: dò theo <b>TPA + Số HSBT + Số hợp đồng</b> trong kho hồ sơ. File có trường nào trong <b>DOB, CCCD, Hình thức điều trị, Chẩn đoán, CSYT</b> thì cập nhật trường đó; ô trống trong file thì giữ nguyên dữ liệu trên app. <b>Ngày tổn thất</b> chỉ điền khi hồ sơ trên app đang trống. File nguồn là file gốc của TPA, đọc theo mapping trong Cài đặt.</p></div>` : ''}<div class="panel"${c.upd ? ' style="display:none"' : ''}><p class="mut sm">Tra theo <b>Số đơn BH ↔ Số HĐ</b> trong DATA: <b>Đơn vị = Mã đơn vị · Phòng ban = Mã đơn vị bỏ số 1 đầu · Đối tượng bảo hiểm = Tên HĐ · Khách hàng = Mã KH</b>. Nếu <b class="warn">Ngày tổn thất nằm ngoài Hiệu lực</b> của Số HĐ, app dừng tạo FULL và xuất Excel lỗi để kiểm tra. FULL không có cột STT.</p></div></div></div>`;
 }
 RENDER.conv = () => convFormHTML('conv');
 function convResultHTML(r, title, noFull) {
@@ -2123,7 +2123,7 @@ function convResultHTML(r, title, noFull) {
   const f = r.files || {}, dl = (k, label, cls) => f[k] && !(noFull && k === 'full') ? `<button class="btn ${cls || ''}" data-act="convDl" data-v="${k}">${label}</button>` : '';
   const rev = convState().review;
   return `<div class="panel"><h3>${title || 'Kết quả'}</h3>${r.msgs.map(m => `<p class="${m.cls || ''}">${esc(m.t)}</p>`).join('')}
-  <div class="bar">${dl('full', r.kind === 'fix' ? 'Tải file Fix lỗi' : 'Tải file FULL', 'pri')}${r.unitCount > 1 ? '<button class="btn" data-act="convSplit">Tách theo mã phòng</button>' : ''}${dl('missing', 'Tải file lỗi thiếu trường', 'dng')}${dl('validity', 'Tải file lỗi hiệu lực', 'dng')}${dl('upd', 'Tải báo cáo update')}${dl('rest', `Tải file lỗi còn lại (${r.restRows || 0})`)}${dl('dup', 'Tải danh sách trùng')}</div>
+  <div class="bar">${dl('full', r.kind === 'fix' ? 'Tải file Fix lỗi' : 'Tải file FULL', 'pri')}${r.unitCount > 1 && !noFull ? '<button class="btn" data-act="convSplit">Tách theo mã phòng</button>' : ''}${dl('missing', 'Tải file lỗi thiếu trường', 'dng')}${dl('validity', 'Tải file lỗi hiệu lực', 'dng')}${dl('upd', 'Tải báo cáo update')}${dl('rest', `Tải file lỗi còn lại (${r.restRows || 0})`)}${dl('dup', 'Tải danh sách trùng')}</div>
   ${rev ? convReviewHTML(rev) : ''}</div>`;
 }
 function convReviewHTML(rev) {
@@ -2394,7 +2394,7 @@ ACT.fixPend = v => {
   row.updatedAt = new Date().toISOString(); touch('tracker'); renderBody();
   toast(`Đã ghi pending ${list.length}hs vào đợt ${row.officialLetter}`);
 };
-const TOOL_FN = [['cccd', 'Bổ sung CCCD'], ['quarter', 'DPBT quý'], ['fix', 'Fix lỗi']];
+const TOOL_FN = [['cccd', 'Bổ sung CCCD'], ['upd', 'Update dữ liệu thiếu'], ['quarter', 'DPBT quý'], ['fix', 'Fix lỗi']];
 RENDER.tool = () => {
   const t = S.tool, seg = `<div class="bar" style="margin-bottom:12px">${TOOL_FN.map(([k, l]) => `<button class="btn${t.fn === k ? ' pri' : ''}" data-nc data-act="toolFn" data-v="${k}">${l}</button>`).join('')}</div>`;
   if (t.fn === 'fix') return seg + fxFormHTML();
@@ -2408,7 +2408,7 @@ RENDER.tool = () => {
   File tải về: <b>Số HS TPA – Tên NĐBH – DOB – CCCD</b>, chỉ các hồ sơ đang thiếu CCCD, theo thứ tự file gốc; dòng lỗi ghi ngay trong cột CCCD.</p></div></div></div>`;
 };
 ACT.toolFn = v => {
-  const t = S.tool; if (t.fn === v) return; t.fn = v; t.quarter = v === 'quarter'; t.fix = v === 'fix'; t.upd = false;
+  const t = S.tool; if (t.fn === v) return; t.fn = v; t.quarter = v === 'quarter'; t.fix = v === 'fix'; t.upd = v === 'upd';
   t.file = null; t.fixFile = null; t.listFile = null; t.result = null; t.review = null; t.confirmSig = ''; t.cc = null; t.fx = null; renderBody();
 };
 function ccResultHTML(r) {
@@ -2723,10 +2723,9 @@ function xlConvCol(done) {
   const own = c.upd ? '' : c.profile === 'FPTIS' ? fld('Số CV (DPBT)', inp('conv.fptCv', 'VD: 1820/26/FPT IS'), 'full') : '';
   return `<div class="panel xlcol" id="xc-conv" data-scope="conv">${xlHead(1, 'Chuyển đổi DPBT', done)}
   <div class="grid">${c.upd ? '' : fld('Ngày lập dự phòng / Ngày thông báo', dtInp('conv.date'), 'full')}${own}${filePick('conv.file', 'File nguồn')}</div>
-  <label class="box${c.upd ? ' on' : ''}"><input type="checkbox" data-mode="upd" data-change="convMode"${c.upd ? ' checked' : ''}> <b>Update dữ liệu còn thiếu</b><br><span class="mut sm">Dò theo TPA + Số HSBT + Số hợp đồng. File có trường nào trong DOB, CCCD, Hình thức điều trị, Chẩn đoán, CSYT thì cập nhật trường đó; ô trống được giữ nguyên. Ngày tổn thất chỉ điền khi hồ sơ trên app đang trống.</span></label>
   ${c.upd ? '' : `<div class="box"><span class="mut sm">Xem trước Ghi chú</span><div class="prev" id="pvConv">${esc(np ? np.note : '') || '—'}</div></div>`}
   <div class="box"><span class="mut">DATA đang dùng: </span><b class="res-ok">${DB.data.rows.length} dòng</b> <a href="#" data-act="convData">Quản lý DATA</a></div>
-  <div class="act"><button class="btn ok" data-enter-btn data-act="convGo">${c.upd ? 'Đối chiếu và cập nhật' : 'Chuyển đổi & lưu dữ liệu'}</button>${f ? `<button class="btn pri" data-act="convDl" data-v="full">${c.result.kind === 'fix' ? 'Tải file Fix lỗi' : 'Tải file FULL'}</button>` : ''}</div></div>`;
+  <div class="act"><button class="btn ok" data-enter-btn data-act="convGo">${c.upd ? 'Đối chiếu và cập nhật' : 'Chuyển đổi & lưu dữ liệu'}</button>${f ? `<button class="btn pri" data-act="convDl" data-v="full">${c.result.kind === 'fix' ? 'Tải file Fix lỗi' : 'Tải file FULL'}</button>` : ''}${f && c.result.unitCount > 1 ? '<button class="btn" data-act="convSplit">Tách theo mã phòng</button>' : ''}</div></div>`;
 }
 function xlBkCol(done) {
   const b = S.bk, r = b.result;
