@@ -159,9 +159,10 @@ nav{overflow-y:auto;min-height:0;flex:1}@media(max-height:860px){.nav{padding:5p
 .logo-ico .li-a{transform-origin:center;transition:transform .3s}.logo-ico .li-ink{transition:filter .3s}.brand:hover .logo-ico .li-a{transform:translateY(-2px) rotate(-4deg)}
 @media (prefers-reduced-motion:reduce){.logo *,.logo-ico *{animation:none!important;transition:none!important}.brand:hover .logo-ico .li-a{transform:none}.lg-shine{display:none}}
 /* ===== Ảnh nền (chỉ theme tối, vùng nội dung bên phải) ===== */
-:root[data-theme=dark].hasbg main{position:relative;isolation:isolate}
+:root[data-theme=dark].hasbg main{position:relative;isolation:isolate;overflow:clip}
+.side{z-index:5}
 :root[data-theme=dark].hasbg main::before{content:"";position:absolute;inset:-24px;background:var(--bgimg) center/cover no-repeat;filter:blur(var(--bgblur,0px));z-index:-2;pointer-events:none}
-:root[data-theme=dark].hasbg main::after{content:"";position:absolute;inset:0;background:rgba(7,13,36,var(--bgdim,.55));z-index:-1;pointer-events:none}
+:root[data-theme=dark].hasbg main::after{content:"";position:absolute;inset:-24px;background:rgba(7,13,36,var(--bgdim,.55));z-index:-1;pointer-events:none}
 :root[data-theme=dark].hasbg{--card:rgba(15,26,66,.86);--card2:rgba(12,21,56,.86)}
 .bgr{display:grid;grid-template-columns:repeat(2,minmax(0,280px));gap:18px;margin-top:10px}.bgr input[type=range]{width:100%;accent-color:var(--pri)}
 /* ===== Màu nút thao tác ===== */
@@ -922,9 +923,34 @@ function moneyFmt(t) {
   let n = 0, i = 0; for (; i < out.length && n < before; i++) if (/\d/.test(out[i])) n++; try { t.setSelectionRange(i, i); } catch (e) { /* bỏ qua */ }
   return digits;
 }
+/* ===================== Lọc tự động: Tìm kiếm hồ sơ, Theo dõi HS TPA, Hợp đồng – DATA HĐ ===================== */
+const AUTO_F = { search: 'search.f.', trk: 'trk.f.', hd: 'hd.f.' };
+let AUTO_T = null;
+const autoKey = t => { const k = t && t.dataset && t.dataset.k, pre = AUTO_F[S.tab]; return k && pre && k.startsWith(pre) ? S.tab : ''; };
+const filled = o => Object.entries(o || {}).some(([k, v]) => k !== 'trk' && String(v == null ? '' : v).trim() !== '');
+function autoApply(tab) {
+  clearTimeout(AUTO_T); AUTO_T = null; if (S.tab !== tab) return;
+  if (tab === 'search') { const f = S.search.f; S.search.applied = filled(f) || f.trk ? { ...f } : null; S.search.page = 1; S.search.sel = {}; S.search.all = false; }
+  else if (tab === 'trk') { S.trk.applied = { year: S.trk.year, f: { ...S.trk.f }, all: filled(S.trk.f) }; S.trk.page = 1; }
+  else if (tab === 'hd') { S.hd.ap = { ...S.hd.f }; S.hd.searched = filled(S.hd.f); S.hd.page = 1; S.hd.renameGroup = ''; }
+  renderKeepFocus();
+}
+/* Vẽ lại nhưng giữ con trỏ trong ô đang gõ */
+function renderKeepFocus() {
+  const a = document.activeElement, k = a && a.dataset && a.dataset.k, s0 = a && a.selectionStart, s1 = a && a.selectionEnd;
+  renderBody();
+  if (!k) return; const el = document.querySelector(`[data-k="${k}"]`); if (!el) return;
+  el.focus(); try { if (s0 != null && el.setSelectionRange) el.setSelectionRange(s0, s1); } catch (e) { /* ô không hỗ trợ chọn chữ */ }
+}
+function autoSchedule(t) {
+  const tab = autoKey(t); if (!tab) return;
+  if (t.tagName === 'SELECT' || t.type === 'checkbox') return autoApply(tab);
+  clearTimeout(AUTO_T); AUTO_T = setTimeout(() => autoApply(tab), 400);
+}
 function onInput(e) {
   const t = e.target; if (t && t.dataset && t.dataset.inp && ACT[t.dataset.inp]) { ACT[t.dataset.inp](t.value, t, e); return; } if (t && t.dataset && 'money' in t.dataset) { const d = moneyFmt(t); setPath(S, t.dataset.k, d === '' ? '' : Number(d)); if (typeof trkKhoRefresh === 'function') trkKhoRefresh(); return; }
   if (bindValue(e)) syncShared(e.target.dataset.k);
+  autoSchedule(e.target);
 }
 function onChange(e) {
   const t = e.target; if (bindValue(e)) syncShared(t.dataset.k);
@@ -938,6 +964,7 @@ function onKey(e) {
   if (e.key === 'Escape' && $('#modal.on')) return closeModal();
   if (e.key !== 'Enter' || e.isComposing || e.repeat) return;
   const t = e.target; if (!t || t.tagName === 'TEXTAREA' || t.tagName === 'BUTTON' || t.type === 'checkbox' || t.type === 'file') return;
+  { const tab = autoKey(t); if (tab) { e.preventDefault(); if (t.classList.contains('dt') && t.value.trim()) { const p = parseDateInput(t.value); if (p) { t.value = fmtVN(p); setPath(S, t.dataset.k, t.value); } } return autoApply(tab); } }
   if (t.dataset && t.dataset.enter) { e.preventDefault(); const f = ACT[t.dataset.enter]; if (f) f(t.value, t, e); return; }
   const scope = t.closest('[data-scope]'); if (!scope) return;
   const b = scope.querySelector('[data-enter-btn]'); if (b && !b.disabled) { e.preventDefault(); b.click(); }
@@ -949,7 +976,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.13-1';
+const APP_VER = '2026.11.13-2';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1265,7 +1292,7 @@ RENDER.trk = () => {
   <select class="in" data-k="trk.f.tpa">${optHTML(TPAS, t.f.tpa, 'Tất cả TPA')}</select>
   <select class="in" data-k="trk.f.status">${optHTML(TRK_ST, t.f.status, 'Tất cả trạng thái')}</select>
   <select class="in" data-k="trk.f.tpc"><option value="">TPC: Tất cả</option><option value="yes"${t.f.tpc === 'yes' ? ' selected' : ''}>Có TPC</option><option value="no"${t.f.tpc === 'no' ? ' selected' : ''}>Không TPC</option></select>
-  <button class="btn pri" data-enter-btn data-act="trkSearch">Tìm hồ sơ</button><button class="btn" data-act="trkClear">Xóa lọc</button><span class="sp"></span>
+  <button class="btn" data-act="trkClear">Xóa lọc</button><span class="sp"></span>
   <button class="btn" data-act="trkHol">Quản lý ngày nghỉ · ${(DB.tracker.holidays || []).length}</button><button class="btn" data-act="trkNew">+ Thêm đợt HS</button><button class="btn" data-act="trkImp">Nhập Excel</button><button class="btn" data-act="trkExp">Xuất Excel đẹp</button><button class="btn dng" data-act="trkWipe">Xóa sạch danh sách</button></div></div>
   <div class="mini"><span>Tổng đợt <b>${all.length}</b></span><span>Tổng HS <b>${money(all.reduce((s, r) => s + r.caseCount, 0))}</b></span><span>Tổng tiền <b>${money(all.reduce((s, r) => s + r.amount, 0))}</b></span><span>Đang theo dõi <b>${all.filter(r => TRK_ACTIVE.includes(r.status)).length}</b></span><span class="mut">${TPAS.map(x => x + ': ' + (tpaCnt[x] || 0)).join(' · ')}</span><span class="sp"></span><span class="mut">${a.all ? 'Kết quả tìm kiếm (gồm cả HS đã hoàn thành)' : 'Đang hiển thị HS chưa hoàn thành'} · <b>${rows.length}</b> đợt</span></div>
   ${dataTable(['Ngày nhận / Deadline', 'Công văn', 'TPA / Số lượng HS', 'Kho', 'Số tiền', 'TPC', 'Ngày nhập HS', 'Ngày chuyển KT', 'Trạng thái', 'Ghi chú', ''], body, 'Không có đợt hồ sơ', 'trk')}
@@ -1582,7 +1609,7 @@ RENDER.hd = () => {
   return `<div class="panel"><div class="tpa-row">${[...TPAS, ''].map(card).join('')}</div></div>
   <div class="panel" data-scope="hd"><h3>DATA hợp đồng <span class="mut sm">· tổng ${rows.length}</span></h3><div class="bar hdbar">
   <input class="in" data-k="hd.f.policy" placeholder="Lọc Số HĐ" value="${esc(h.f.policy)}"><input class="in w1" data-k="hd.f.name" placeholder="Lọc Tên HĐ" value="${esc(h.f.name)}"><input class="in" data-k="hd.f.period" placeholder="Lọc Hiệu lực" value="${esc(h.f.period)}"><input class="in" data-k="hd.f.group" placeholder="Lọc Group" value="${esc(h.f.group)}">
-  <button class="btn pri" data-enter-btn data-act="hdFind">Tìm DATA</button><button class="btn" data-act="hdClear">Xóa tìm kiếm</button>${filePick('hd.dataFile', '')}<button class="btn" data-act="hdUpload">Upload DATA</button><button class="btn" data-act="hdAdd">Thêm dữ liệu</button><button class="btn dng" data-act="hdWipe">Xóa sạch DATA</button></div>
+  <button class="btn" data-act="hdClear">Xóa tìm kiếm</button>${filePick('hd.dataFile', '')}<button class="btn" data-act="hdUpload">Upload DATA</button><button class="btn" data-act="hdAdd">Thêm dữ liệu</button><button class="btn dng" data-act="hdWipe">Xóa sạch DATA</button></div>
   <p class="mut sm">File Excel cần sheet <b>DATA</b> (hoặc sheet đầu) có các cột <b>Số HĐ, Mã KH, Tên HĐ, Mã đơn vị</b>; có thể thêm <b>Hiệu lực, TPA, GROUP</b>. Số HĐ đã có thì không thêm lại, chỉ bổ sung GROUP nếu đang trống.</p></div>
   ${hdListHTML()}`;
 };
@@ -1747,11 +1774,11 @@ RENDER.search = () => {
   <button class="btn" data-act="srExpand">${s.expanded ? 'Thu gọn ▴' : 'Mở rộng ▾'}</button></div>
   ${f.trk ? `<div class="trkchip">Đang xem theo đợt: ${esc(f.trk.tpa)} · ${esc(f.trk.cv)} <button data-act="srTrkOff" title="Bỏ lọc theo đợt">✕</button></div>` : ''}
   ${s.expanded ? `<div class="bar ex">${ext('cccd', 'bCccd', 'CCCD')}${ext('dob', 'bDob', 'DOB')}${ext('benefit', 'bBenefit', 'Hình thức điều trị')}${ext('diagnosis', 'bDiagnosis', 'Chẩn đoán')}${ext('provider', 'bProvider', 'Cơ sở y tế')}</div>` : ''}
-  <div class="bar"><button class="btn pri" data-enter-btn data-act="srFind">Tìm hồ sơ</button><button class="btn" data-act="srClear">Xóa lọc</button><button class="btn" data-act="srAddTrk">Thêm đợt HS</button><button class="btn" data-act="srImpTrk">Nhập Excel đợt HS</button><button class="btn" data-act="srImpOld">Nhập hồ sơ cũ (Excel)</button><button class="btn" data-act="srExp">Xuất Excel đẹp</button></div></div>
+  <div class="bar"><button class="btn" data-act="srClear">Xóa lọc</button><button class="btn" data-act="srAddTrk">Thêm đợt HS</button><button class="btn" data-act="srImpTrk">Nhập Excel đợt HS</button><button class="btn" data-act="srImpOld">Nhập hồ sơ cũ (Excel)</button><button class="btn" data-act="srExp">Xuất Excel đẹp</button></div></div>
   ${s.applied ? `<div class="mini"><span>Tổng hồ sơ <b>${rows.length}</b></span><span>Tổng tiền DPBT <b>${money(rows.reduce((t, r) => t + numAmount(r.amount), 0))}</b></span><span class="mut">Nguồn: Chuyển đổi DPBT</span><span class="sp"></span><span class="mut">Đã chọn ${selN}</span><button class="btn" data-act="srEditSel"${selN === 1 ? '' : ' disabled'}>Sửa hồ sơ đã chọn</button><button class="btn dng" data-act="srDelSel"${selN ? '' : ' disabled'}>Xóa hồ sơ đã chọn</button></div>
   ${banner || '<div class="selbn ghost">&nbsp;</div>'}
   ${dataTable([`<input type="checkbox" id="srAllCb" data-act="srAll" aria-label="Chọn tất cả hồ sơ trong trang"${pageAll ? ' checked' : ''}>`, ...srCols.map(c => c[0])], slice.map(r => `<tr class="click" data-act="srOpen" data-v="${r.id}"><td><input type="checkbox" data-act="srSel" data-v="${r.id}"${(s.all || s.sel[r.id]) ? ' checked' : ''}></td>${srCols.map(c => { const v = c[2] ? money(c[1](r)) : c[1](r); if (c[0] === 'Ghi chú') { const t = srNoteTrk(r); if (t) return `<td title="${esc(v)}"><a class="ntl" data-act="srNoteTrk" data-v="${t.id}">${esc(v)}</a></td>`; } return `<td${c[2] ? ' class="num"' : c[0] === 'Số HSBT TPA' ? ' class="hs"' : ''} title="${esc(v)}">${esc(v)}</td>`; }).join('')}</tr>`), 'Không có hồ sơ', 'sr')}
-  ${pager('sr', s.page, pages, ' <button class="btn" data-act="srReload">Tải lại ⟳</button>')}` : '<div class="info">Nhập điều kiện rồi bấm "Tìm hồ sơ". Danh sách này lấy từ các lần "Chuyển đổi & lưu dữ liệu".</div>'}`;
+  ${pager('sr', s.page, pages, ' <button class="btn" data-act="srReload">Tải lại ⟳</button>')}` : '<div class="info">Nhập điều kiện để lọc. Danh sách này lấy từ các lần "Chuyển đổi & lưu dữ liệu".</div>'}`;
 };
 ACT.srExpand = () => { S.search.expanded = !S.search.expanded; renderBody(); };
 ACT.srFind = () => { S.search.applied = { ...S.search.f }; S.search.page = 1; S.search.sel = {}; S.search.all = false; renderBody(); };
