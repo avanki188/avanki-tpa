@@ -85,7 +85,8 @@ a{color:var(--pri)}.mut{color:var(--mut)}.sm{font-size:12px}.warn{color:var(--ba
 .grp-t{font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);padding:12px 12px 4px}
 .nav .ico{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:rgba(255,122,26,.12);color:var(--pri);flex:none}.nav.on .ico{background:rgba(255,255,255,.22);color:#fff}
 .nav.on{background:linear-gradient(90deg,var(--pri),var(--pri2));box-shadow:0 4px 16px var(--glow)}
-.layout.col{grid-template-columns:72px 1fr}.layout.col .lbl,.layout.col .bt,.layout.col .grp-t,.layout.col .stat{display:none}.layout.col .nav{justify-content:center;padding:8px}.layout.col .brand{justify-content:center}
+.layout.col{grid-template-columns:72px 1fr}.layout.col .lbl,.layout.col .bt,.layout.col .grp-t,.layout.col .stat{display:none}.layout.col .nav{justify-content:center;padding:0;width:44px;height:44px;margin:2px auto;border-radius:12px}
+.layout.col .nav .ico{width:30px;height:30px}.layout.col .nav.on{box-shadow:0 3px 12px var(--glow)}.layout.col .nav.on .ico{background:transparent}.layout.col .brand{justify-content:center}
 .top{gap:14px}.gs{flex:1;max-width:460px}.gs .in{width:100%;border-radius:999px;padding:0 16px}
 .stat::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:7px;vertical-align:middle}.stat.bad::before{background:var(--bad)}
 .steps{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}.step{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:7px 16px 7px 8px;cursor:pointer;font:inherit}
@@ -725,7 +726,7 @@ const ACT = {};
 const TABLIST = [
   ['home', 'Hôm nay', 'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10'],
   ['xl', 'Xử lý DPBT', 'M4 4h16v4H4zM4 10h10v4H4zM4 16h16v4H4z'],
-  ['tool', 'Công cụ', 'M14 7l3-3 3 3-3 3M17 4v0M4 20l9-9M12 5l7 7'],
+  ['tool', 'Công cụ', 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'],
   ['search', 'Tìm kiếm hồ sơ', 'M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-5-5'],
   ['hd', 'Hợp đồng', 'M4 20V10M10 20V4M16 20v-7M22 20H2'],
   ['trk', 'Theo dõi HS TPA', 'M5 4h14v16H5zM9 9h6M9 13h6M9 17h3']
@@ -948,7 +949,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.12-2';
+const APP_VER = '2026.11.13-1';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1057,8 +1058,9 @@ function migrateTracker() {
   }
   if (ch) touch('tracker');
 }
-function trackerStatus(raw, acc, note, entered) {
+function trackerStatus(raw, acc, note, entered, pend) {
   raw = TRK_LEG[raw] || raw;
+  if (pend) return 'Chờ bổ sung'; /* còn hồ sơ pending (ghi từ Fix lỗi) thì luôn Chờ bổ sung, kể cả đủ 2 ngày */
   if (raw === 'Hoàn thành') return raw;
   if (String(acc || '').trim() && String(entered || '').trim()) return 'Hoàn thành'; /* đủ Ngày nhập HS + Ngày chuyển KT thì Hoàn thành */
   if (raw === 'Chờ bổ sung') return raw;
@@ -1076,7 +1078,7 @@ function cleanTracker(r) {
   if (have.size > 0 && normalize(r.paymentNote).includes('PENDING')) for (const iso of extractDates(r.paymentNote)) if (!have.has(iso) && !add.includes(iso)) add.push(iso);
   r.accountingDate = lines.concat(add.map(fmtVN)).join('\n');
   r.amount = Math.max(0, numAmount(r.amount)); r.caseCount = Math.max(0, Math.round(Number(r.caseCount) || 0)); r.tpc = !!r.tpc;
-  r.status = trackerStatus(r.status, r.accountingDate, r.paymentNote, r.enteredDate);
+  r.status = trackerStatus(r.status, r.accountingDate, r.paymentNote, r.enteredDate, !!(r.pending && r.pending.length));
   return r;
 }
 function trkDerived(r) {
@@ -1180,11 +1182,33 @@ function trkLinkDpbt(h) {
   if (r.status === 'Mới tiếp nhận' || r.status === 'Chờ bổ sung') { r.status = 'Đang xử lý'; r.updatedAt = new Date().toISOString(); touch('tracker'); return 'updated:' + r.officialLetter; }
   return 'advanced';
 }
+/* Tạo Giấy ĐNTT xong: điền Ngày chuyển KT = ngày tạo ĐNTT; còn pending thì Chờ bổ sung, không thì Hoàn thành */
+function trkLinkDntt(h) {
+  const lim = new Date(Date.parse(h.date) - 400 * 864e5).toISOString().slice(0, 10), scored = [];
+  for (const r of DB.tracker.rows) {
+    if (r.tpa !== h.tpa || (r.receivedDate && (r.receivedDate > h.date || r.receivedDate < lim))) continue;
+    const id = Math.max(0, ...h.texts.map(t => trkScore(h.tpa, t, r.officialLetter))); if (id < trkNeed(h.tpa)) continue;
+    const cs = h.count > 0 && r.caseCount === h.count, am = h.amount > 0 && Math.abs(numAmount(r.amount) - h.amount) <= 1;
+    scored.push({ r, score: id + (cs ? 3 : 0) + (am ? 3 : 0) });
+  }
+  scored.sort((a, b) => b.score - a.score || (b.r.receivedDate > a.r.receivedDate ? 1 : -1));
+  if (!scored.length) return { t: 'Chưa cập nhật được Theo dõi HS TPA: không dò ra đợt khớp nội dung ĐNTT, ní cập nhật tay nha.', cls: 'warn2' };
+  if (scored.length > 1 && scored[0].score - scored[1].score < 2) return { t: `Chưa cập nhật được Theo dõi HS TPA: dò ra nhiều đợt cùng khớp (${scored.slice(0, 4).map(x => x.r.officialLetter).join('; ')}), ní cập nhật tay nha.`, cls: 'warn2' };
+  const r = scored[0].r, pn = (r.pending || []).length, d = fmtVN(h.date), before = r.status;
+  if (!String(r.accountingDate || '').trim()) r.accountingDate = d;
+  if (!String(r.enteredDate || '').trim()) r.enteredDate = d;
+  r.status = trackerStatus(r.status, r.accountingDate, r.paymentNote, r.enteredDate, pn > 0);
+  r.updatedAt = new Date().toISOString(); touch('tracker');
+  const lech = h.count > 0 && h.count !== Math.round(r.caseCount || 0), cnt = h.count > 0 ? `BK ${h.count}/${Math.round(r.caseCount || 0)} HS` : '';
+  if (pn) return { t: `Đã cập nhật Theo dõi HS TPA: ${r.officialLetter} – Ngày chuyển KT ${d.split('\n')[0]} · ${cnt}${lech ? ` (lệch ${Math.abs(h.count - Math.round(r.caseCount || 0))} HS)` : ''} · còn ${pn} hồ sơ pending → Chờ bổ sung. Bổ sung xong bấm "Đã bổ sung xong" ở hộp pending.`, cls: 'warn2' };
+  if (lech) return { t: `Đã cập nhật Theo dõi HS TPA: ${r.officialLetter} → ${r.status} · ${cnt}, lệch ${Math.abs(h.count - Math.round(r.caseCount || 0))} HS, ní kiểm tra lại nha.`, cls: 'warn2' };
+  return { t: `Đã cập nhật Theo dõi HS TPA: ${r.officialLetter} → ${r.status}${before === r.status && before === 'Hoàn thành' ? ' (đã hoàn thành trước đó)' : ''}${cnt ? ` (${cnt})` : ''}.`, cls: 'res-ok' };
+}
 function trkLinkBangke(h) {
   const m = trkFindMatch(h, 'bk'); if (m.res !== 'matched') return m.res;
   const r = m.row; let changed = false;
   if (!String(r.enteredDate || '').trim()) { r.enteredDate = fmtVN(h.linkDate); changed = true; }
-  if (['Mới tiếp nhận', 'Đang xử lý', 'Chờ bổ sung'].includes(r.status)) { r.status = 'Đã nhập HS'; changed = true; }
+  if (!(r.pending && r.pending.length) && ['Mới tiếp nhận', 'Đang xử lý', 'Chờ bổ sung'].includes(r.status)) { r.status = 'Đã nhập HS'; changed = true; }
   if (changed) { r.updatedAt = new Date().toISOString(); touch('tracker'); return 'updated:' + r.officialLetter; }
   return 'already_set';
 }
@@ -1262,9 +1286,19 @@ function trkPendHTML(r) {
 const msnSeal = n => `<span class="msn-seal" title="Số hồ sơ pending">${n}</span>`;
 const msnTpa = t => `<span class="msn-tpa" style="--tc:var(--t-${esc(t)},var(--pri))">${esc(t)}</span>`;
 function msnModal(head, body, btns) { modal(`<div class="msn-h">${head}</div><div class="msn-b">${body}<div class="act"><span class="sp"></span><button class="btn" data-act="close">Đóng</button>${btns || ''}</div></div>`); const c = $('#modal .card'); if (c) c.classList.add('msn'); }
+ACT.trkPendDone = async v => {
+  const r = DB.tracker.rows.find(x => x.id === v); if (!r || !(r.pending || []).length) return;
+  if (!(await confirmBox({ title: 'Đã bổ sung xong?', msg: `Đợt ${r.officialLetter} đã bổ sung xong ${r.pending.length} hồ sơ pending?`, okText: 'Đã bổ sung xong', cancelText: 'Chưa', danger: false }))) return;
+  r.pending = []; r.paymentNote = String(r.paymentNote || '').replace(/\s*(?:·\s*)?pending\s*\d+\s*hs\s*/ig, '\n').split(/\r?\n/).map(x => x.trim()).filter(Boolean).join('\n');
+  const was = r.status; r.status = trackerStatus(was === 'Chờ bổ sung' ? 'Đang xử lý' : was, r.accountingDate, r.paymentNote, r.enteredDate, false);
+  r.updatedAt = new Date().toISOString(); touch('tracker');
+  if (S.trk.edit && S.trk.edit.id === r.id) { S.trk.edit.pending = []; S.trk.edit.paymentNote = r.paymentNote; S.trk.edit.status = r.status; }
+  closeModal(); if (S.trk.edit && S.trk.edit.id === r.id) ACT.trkEdit(r.id); else renderBody();
+  toast(`Đợt ${r.officialLetter} → ${r.status}`);
+};
 ACT.trkPend = v => {
   const r = DB.tracker.rows.find(x => x.id === v); if (!r) return; const n = (r.pending || []).length;
-  msnModal(`${msnSeal(n)}<div class="msn-t"><b>Hồ sơ pending</b><span>${esc(r.officialLetter)}</span></div>${msnTpa(r.tpa)}`, `<p class="mut sm">${n} hồ sơ lỗi POLICY đang pending (ghi từ Fix lỗi).</p>${trkPendHTML(r)}`);
+  msnModal(`${msnSeal(n)}<div class="msn-t"><b>Hồ sơ pending</b><span>${esc(r.officialLetter)}</span></div>${msnTpa(r.tpa)}`, `<p class="mut sm">${n} hồ sơ lỗi POLICY đang pending (ghi từ Fix lỗi).</p>${trkPendHTML(r)}`, `<button class="btn c-teal" data-nc data-act="trkPendDone" data-v="${r.id}">Đã bổ sung xong</button>`);
 };
 ACT.trkYear = v => { S.trk.year = +v; S.trk.applied = { year: +v, f: { ...S.trk.f }, all: false }; S.trk.page = 1; renderBody(); };
 ACT.trkSearch = () => { S.trk.applied = { year: S.trk.year, f: { ...S.trk.f }, all: true }; S.trk.page = 1; renderBody(); };
@@ -1316,7 +1350,7 @@ function trkForm() {
   ${fld('Số lượng HS', inp('trk.edit.caseCount', '', 'inputmode="numeric"'))}${fld('Số tiền', `<input class="in" data-k="trk.edit.amount" data-money inputmode="decimal" autocomplete="off" value="${esc(e.amount ? money(e.amount) : '')}">`)}
   <div class="fl"><span>&nbsp;</span><label class="chk" style="height:38px"><input type="checkbox" data-k="trk.edit.tpc"${e.tpc ? ' checked' : ''}> TPC</label></div>
   ${fld('Trạng thái', `<select class="in" data-k="trk.edit.status">${optHTML(TRK_ST, e.status)}</select>`)}${trkDateBox('entL', 'Ngày nhập HS')}${trkDateBox('accL', 'Ngày chuyển kế toán')}
-  <div class="khol" id="trkKho">${trkKhoHTML(e)}</div><div class="khlist" id="trkKhoList">${S.trk.khoOpen ? trkKhoListHTML(e) : ''}</div>
+  <div class="khol" id="trkKho">${trkKhoHTML(e)}</div>${e.id && (e.pending || []).length ? `<div class="khol pdline"><span class="pdn">⚑ Còn ${e.pending.length} hồ sơ pending</span> <button class="btn sm2" data-nc data-act="trkPend" data-v="${e.id}">Xem</button> <button class="btn c-teal sm2" data-nc data-act="trkPendDone" data-v="${e.id}">Đã bổ sung xong</button></div>` : ''}<div class="khlist" id="trkKhoList">${S.trk.khoOpen ? trkKhoListHTML(e) : ''}</div>
   ${fld('Ghi chú', `<textarea class="in" rows="3" data-k="trk.edit.paymentNote">${esc(e.paymentNote)}</textarea>`, 'full')}</div>
   <div class="act">${isNew ? '' : '<button class="btn dng" data-act="trkDel">Xóa</button>'}<span class="sp"></span><button class="btn" data-act="close">Hủy</button><button class="btn pri" data-act="trkSave">Lưu hồ sơ</button></div>`, true);
 }
@@ -1332,7 +1366,7 @@ ACT.trkEdit = v => {
   const r = DB.tracker.rows.find(x => x.id === v); if (!r) return; S.trk.khoOpen = false;
   S.trk.edit = { ...r, receivedDate: fmtVN(r.receivedDate), amount: r.amount || '', caseCount: r.caseCount || '', entL: trkLines(r.enteredDate), accL: trkLines(r.accountingDate) }; trkForm();
 };
-const trkWhy = r => String(r.accountingDate || '').trim() && String(r.enteredDate || '').trim() ? 'Đợt đã có đủ Ngày nhập HS và Ngày chuyển KT'
+const trkWhy = r => r.pending && r.pending.length ? `Đợt còn ${r.pending.length} hồ sơ pending` : String(r.accountingDate || '').trim() && String(r.enteredDate || '').trim() ? 'Đợt đã có đủ Ngày nhập HS và Ngày chuyển KT'
   : String(r.accountingDate || '').trim() ? 'Đợt đã có Ngày chuyển KT' : normalize(r.paymentNote).includes('PENDING') ? 'Ghi chú có PENDING' : String(r.enteredDate || '').trim() ? 'Đợt đã có Ngày nhập HS' : 'Theo rule trạng thái';
 ACT.trkSave = async () => {
   const e = S.trk.edit, rd = parseDateInput(e.receivedDate);
@@ -2390,7 +2424,7 @@ ACT.fixPend = v => {
   row.pending = list;
   const base = String(row.paymentNote || '').replace(/\s*(?:·\s*)?pending\s*\d+\s*hs\s*/ig, '\n').split(/\r?\n/).map(x => x.trim()).filter(Boolean).join('\n');
   row.paymentNote = (base ? base + '\n' : '') + `pending ${list.length}hs`;
-  row.status = trackerStatus(row.status, row.accountingDate, row.paymentNote, row.enteredDate);
+  row.status = trackerStatus(row.status, row.accountingDate, row.paymentNote, row.enteredDate, true);
   row.updatedAt = new Date().toISOString(); touch('tracker'); renderBody();
   toast(`Đã ghi pending ${list.length}hs vào đợt ${row.officialLetter}`);
 };
@@ -2629,7 +2663,8 @@ function bkTotal(rows) {
     const a = num(r[cm]); if (a > 0) { total = a; break; } for (let j = r.length - 1; j >= 0; j--) { const v = num(r[j]); if (v > 0) { total = v; break; } } if (total) break;
   }
   if (!total) { let s = 0; for (let i = hi + 1; i < rows.length; i++) { const r = rows[i] || []; const st = num(r[cs]), v = num(r[cm]); if (st > 0 && isFinite(v)) s += v; } total = s; }
-  return total > 0 ? { total } : { err: 'Chưa xác định được số tiền TỔNG CỘNG trong bảng kê.' };
+  let n = 0; for (let i = hi + 1; i < rows.length; i++) { const r = rows[i] || []; if (r.some(x => /TỔNG\s*CỘNG/i.test(String(x == null ? '' : x)))) break; if (num(r[cs]) > 0) n++; }
+  return total > 0 ? { total, n } : { err: 'Chưa xác định được số tiền TỔNG CỘNG trong bảng kê.' };
 }
 /* ---- Điền nội dung vào mẫu Word (mẫu mặc định hoặc mẫu người dùng tải lên ở Cài đặt) ---- */
 const b64ToU8 = b => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
@@ -2701,7 +2736,12 @@ ACT.dnGo = async () => {
   let u8; try { u8 = await dnFill({ dateLine: `TP.HCM ngày ${td.slice(8)} tháng ${td.slice(5, 7)} năm ${td.slice(0, 4)}`, who: 'DƯƠNG HỚN ĐỨC', unit: 'PHÒNG BẢO HIỂM SỨC KHỎE', amount: Math.round(t.total).toLocaleString('en-US'), words: moneyWords(t.total), content, payee: pay.name, account: pay.account, bank: pay.bank }); } catch (e) { return fail(e.message); }
   const base = d.outName.trim() ? safeFilePart(d.outName.trim(), 'DNTT') : 'DNTT - ' + stdLabel(d.file.name);
   d.result = { msgs, total: t.total, u8, name: safeFilePart(withTpc(base, d.tpc), 'DNTT') + '.docx' };
-  msgs.push({ t: `Đã tạo Giấy ĐNTT ${money(t.total)} đồng.`, cls: 'res-ok' }); renderBody();
+  msgs.push({ t: `Đã tạo Giấy ĐNTT ${money(t.total)} đồng.`, cls: 'res-ok' });
+  const p = d.profile, tx = [content, d.file.name];
+  if (p === 'PPY') tx.unshift(`GD ${ppyNum(d.cv)}-${String(d.year).trim()} THANG ${String(d.month).trim()} DOT ${String(d.dot).trim()}`);
+  if (p === 'FHVI') tx.unshift('GD ' + fhviNorm(String(d.gd || '').replace(/^\s*GD\s*/i, '')));
+  try { msgs.push(trkLinkDntt({ tpa: p, date: td, texts: tx, count: t.n || 0, amount: t.total })); } catch (e) { msgs.push({ t: 'Chưa cập nhật được Theo dõi HS TPA: ' + e.message, cls: 'warn2' }); }
+  renderBody();
 };
 
 // ---- xl ----
@@ -2810,7 +2850,7 @@ RENDER.home = () => {
   const missAny = claims.filter(c => !String(c.identityNo || '').trim() || !String(c.dob || '').trim() || !String(c.diagnosis || '').trim()).length;
   const card = (n, label, cls, act, v) => `<button class="hc ${cls}" ${act ? `data-act="${act}" data-v="${v || ''}"` : ''}><b>${n}</b><span>${label}</span></button>`;
   const top = [...late, ...near].sort((a, b) => b.d.days - a.d.days).slice(0, 8);
-  const pend = rows.filter(r => r.pending && r.pending.length && !String(r.accountingDate || '').trim()).sort((a, b) => a.receivedDate < b.receivedDate ? 1 : -1), pendN = pend.reduce((s, r) => s + r.pending.length, 0);
+  const pend = rows.filter(r => r.pending && r.pending.length).sort((a, b) => a.receivedDate < b.receivedDate ? 1 : -1), pendN = pend.reduce((s, r) => s + r.pending.length, 0);
   return `<div class="hero"><div><h3>Chào ní, hôm nay làm gì?</h3><p class="mut">Mọi dữ liệu nằm trong thư mục OneDrive đã chọn. Số liệu dưới đây tính ngay trên máy, không gửi đi đâu.</p></div></div>
   <div class="hcards">${card(late.length, 'Đợt đã trễ (≥ 6 ngày làm việc)', 'red', 'tab', 'trk')}${card(near.length, 'Đợt sắp trễ (4–5 ngày)', 'yellow', 'tab', 'trk')}${card(noBk.length, 'Đợt chưa nhập HS / lập bảng kê', 'blue', 'tab', 'trk')}${card(missAny, 'Hồ sơ còn thiếu CCCD / DOB / Chẩn đoán', 'purple', 'tab', 'search')}${card(pendN, `Hồ sơ pending${pend.length ? ` (trong ${pend.length} đợt)` : ''}`, 'pend', 'homePend')}</div>
   <div class="two2"><div class="hcol"><div class="panel"><h3>Đợt cần chú ý</h3>${top.length ? dataTable(['Ngày nhận', 'TPA', 'Công văn', 'Ngày LV', 'Trạng thái'], top.map(x => `<tr class="click" data-act="tab" data-v="trk"><td>${esc(x.r.receivedDate)}</td><td>${esc(x.r.tpa)}</td><td>${esc(x.r.officialLetter)}</td><td>${x.d.days}</td><td><span class="bd ${x.d.display === 'Trễ' ? 'late' : 'wait'}">${esc(x.d.display)}</span></td></tr>`)) : '<p class="mut">Không có đợt nào trễ hoặc sắp trễ.</p>'}</div>
