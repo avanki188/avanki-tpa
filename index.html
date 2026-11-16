@@ -30,6 +30,8 @@ main{padding:22px 26px;min-width:0}.top{display:flex;align-items:center;justify-
 .xlh{display:flex;align-items:center;gap:10px;margin:0 0 2px}.xlh .sn{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--pri);color:#fff;font-size:13px;font-weight:800}.xlh .sn.ok{background:#16a34a}
 .xlcol.flash{animation:xlflash 1.2s ease}@keyframes xlflash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 2px var(--pri),0 0 22px var(--glow)}}
 .xlres:empty{display:none}
+.manh{display:flex;align-items:center;gap:8px;margin-bottom:6px}.manbd,.manrs{display:none}.manbox.man .manbd{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;color:#1a1300;background:#fbbf24}.manbox.man .manrs{display:inline-flex;margin-left:auto}
+.prevta{width:100%;min-height:58px;resize:vertical;font-weight:700;line-height:1.45;font-family:inherit}.manbox.man .prevta{border-color:#fbbf24;box-shadow:0 0 0 1px rgba(251,191,36,.35)}
 .two{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:16px;align-items:start}@media(max-width:1000px){.two{grid-template-columns:1fr}}
 .box{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--card2);display:block}.box.on{border-color:var(--pri)}
 .prev{margin:4px 0 8px;padding:7px 10px;border-radius:8px;background:var(--inp);border:1px solid var(--line);min-height:20px;word-break:break-word}
@@ -976,7 +978,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.13-2';
+const APP_VER = '2026.11.16-1';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -2059,7 +2061,7 @@ const hk = s => noAccent(s).replace(/[^A-Z0-9]/g, '');
 const cellText = v => v == null ? '' : (typeof v === 'number' ? String(v) : String(v).trim());
 const roomOf = u => String(u || '').replace(/^1/, '');
 const vnYear = () => vnToday().slice(0, 4);
-S.conv = { profile: '', date: fmtVN(todayISO()), quarter: false, tpc: false, fix: false, upd: false, file: null, fixFile: null, quarterNote: '', gd: '', insCv: '', insYear: '', ppyCv: '', ppyNo: '', ppyYear: '', ppyMonth: '', ppyDot: '', fptCv: '', result: null, review: null, confirmSig: '' };
+S.conv = { noteMan: null, profile: '', date: fmtVN(todayISO()), quarter: false, tpc: false, fix: false, upd: false, file: null, fixFile: null, quarterNote: '', gd: '', insCv: '', insYear: '', ppyCv: '', ppyNo: '', ppyYear: '', ppyMonth: '', ppyDot: '', fptCv: '', result: null, review: null, confirmSig: '' };
 /* Tab Công cụ: Bổ sung CCCD file gốc, DPBT quý, Fix lỗi (DPBT quý + Fix lỗi dùng chung bộ chuyển đổi, state riêng) */
 S.tool = { fn: 'cccd', profile: '', date: fmtVN(todayISO()), quarter: false, tpc: false, fix: false, upd: false, file: null, fixFile: null, listFile: null, quarterNote: '', gd: '', insCv: '', insYear: '', ppyCv: '', ppyMonth: '', ppyDot: '', fptCv: '', result: null, review: null, confirmSig: '', cc: null };
 const convState = () => S.tab === 'tool' ? S.tool : S.conv;
@@ -2219,7 +2221,8 @@ ACT.convGo = async () => {
   if (c.fix && !c.fixFile) return nha('Chọn thêm file báo lỗi để chạy Fix lỗi nha ní.');
   if (c.upd) return convUpdate();
   const dateISO = parseDateInput(c.date); if (!dateISO) return nha('Chọn Ngày lập dự phòng / Ngày thông báo trước nha ní.');
-  const nn = convNote(c); if (!nn) return nha(`Nhập đủ phần Ghi chú theo rule ${c.profile} trước nha ní.`);
+  let nn = convNote(c); if (!nn) return nha(`Nhập đủ phần Ghi chú theo rule ${c.profile} trước nha ní.`);
+  const nnTpl = nn.note; if (S.tab !== 'tool' && !c.upd && c.noteMan != null) { if (!String(c.noteMan).trim()) return nha('Nội dung Ghi chú đang trống nha ní.'); nn = { ...nn, note: String(c.noteMan).trim() }; }
   const profile = c.profile, msgs = [], res = { kind: c.fix ? 'fix' : 'full', msgs, files: {}, profile, dateISO, note: nn.note, base: nn.name };
   const fail = (t, extra) => { msgs.push({ t, cls: 'res-bad' }); Object.assign(res, extra || {}); c.result = res; renderBody(); };
   const sh = (await readExcelFile(c.file))[0]; if (!sh) return fail('File nguồn không có sheet nào.');
@@ -2295,7 +2298,7 @@ ACT.convGo = async () => {
       let ordN = 0; for (const r of fresh) { const row = { id: uid(), claimNo: r.claimNo, policyNo: r.policyNo, insured: r.insured, identityNo: r.identity, dob: r.dobText, note: nn.note, profile, amount: r.amount, reserveDate: dateISO, lossDate: r.lossText, provider: r.provider, benefit: r.benefit, diagnosis: r.diagnosis, customerCode: r.customerCode, contractName: r.contractName, unitCode: r.unitCode, roomCode: roomOf(r.unitCode), sourceFile: c.file.name.slice(0, 220), createdAt: now, recordYear: +vnYear(), ord: ++ordN }; DB.claims.rows.push(row); addClaimIdx(row); added.push(row); }
       touch('claims'); msgs.push({ t: `Đã lưu thành công ${added.length} hồ sơ vào Tìm kiếm hồ sơ.`, cls: 'res-ok' });
       const done = trkCompleteFromClaims(added); if (done) msgs.push({ t: `Theo dõi HS TPA: ${done} đợt đã chuyển KT được chuyển sang Hoàn thành theo ghi chú.` });
-      msgs.push({ t: linkMsg(trkLinkDpbt({ tpa: profile, linkDate: dateISO, texts: [nn.note], companies: [...new Set(added.map(r => r.contractName))], caseCount: added.length, amount: added.reduce((s, r) => s + r.amount, 0) })) });
+      msgs.push({ t: linkMsg(trkLinkDpbt({ tpa: profile, linkDate: dateISO, texts: nn.note === nnTpl ? [nn.note] : [nn.note, nnTpl], companies: [...new Set(added.map(r => r.contractName))], caseCount: added.length, amount: added.reduce((s, r) => s + r.amount, 0) })) });
     } else msgs.push({ t: 'Không có hồ sơ mới để lưu (tất cả đều trùng hoàn toàn).' });
   }
   c.result = res; c.confirmSig = ''; renderBody();
@@ -2569,7 +2572,7 @@ ACT.ccGo = async () => {
 
 // ---- bk ----
 /* ===================== Lập bảng kê ===================== */
-S.bk = { profile: '', date: fmtVN(todayISO()), tpc: false, file: null, outName: '', gd: '', cv: '', year: '', month: '', dot: '', result: null };
+S.bk = { infoMan: null, profile: '', date: fmtVN(todayISO()), tpc: false, file: null, outName: '', gd: '', cv: '', year: '', month: '', dot: '', result: null };
 function bkInfo(b, partial) {
   const t = v => String(v == null ? '' : v).trim(), p = b.profile; let info = '', need = [];
   if (p === 'FHVI') { info = `GIAI ĐOẠN : ${t(b.gd)}`; if (!t(b.gd)) need.push(1); }
@@ -2604,6 +2607,7 @@ ACT.bkGo = async () => {
   if (S.bk.profile === 'FHVI') { const er = fhviErr(S.bk.gd); if (er) return alert(er); }
   const b = S.bk; b.result = null; const msgs = []; const fail = t => { msgs.push({ t, cls: 'res-bad' }); b.result = { msgs }; renderBody(); };
   const info = bkInfo(b); if (info == null) return alert('Nhập đủ thông tin Tờ trình theo TPA đã chọn nha ní.');
+  if (b.infoMan != null && !String(b.infoMan).trim()) return alert('Nội dung Tờ trình đang trống nha ní.');
   if (!b.file) return alert('Chọn file nguồn DPBT trước nha ní.');
   const dateISO = parseDateInput(b.date) || todayISO();
   const sh = (await readExcelFile(b.file))[0]; if (!sh) return fail('File nguồn không có sheet nào.');
@@ -2622,7 +2626,7 @@ ACT.bkGo = async () => {
   const tnr = (o) => Object.assign({ font: 'Times New Roman', sz: 28 }, o);
   const ctr = tnr({ h: 'center', v: 'center', border: true }), N = rows.length, total = rows.reduce((s, r) => s + amt(r[cA]), 0);
   const cell = (v, s) => ({ v, s }), E = s => cell('', s), blank = () => ['', '', '', '', '', '', ''];
-  const info2 = withTpc(`THEO TỜ TRÌNH : NGÀY ${fmtVN(dateISO)}  ; ${info}`, b.tpc);
+  const info2 = b.infoMan != null ? String(b.infoMan).trim() : withTpc(`THEO TỜ TRÌNH : NGÀY ${fmtVN(dateISO)}  ; ${info}`, b.tpc);
   const out = [], hts = {}, merges = [];
   const push = (arr, h) => { out.push(arr); if (h) hts[out.length] = h; return out.length; };
   const bold = tnr({ b: true });
@@ -2641,7 +2645,7 @@ ACT.bkGo = async () => {
   b.result = { msgs, name, u8: XL.write([sheet]) };
   msgs.push({ t: `Đã tạo bảng kê ${N} hồ sơ, tổng ${money(total)} đồng.`, cls: 'res-ok' });
   try {
-    const lk = trkLinkBangke({ tpa: b.profile, linkDate: todayISO(), texts: b.profile === 'PPY' ? [`${ppyNum(b.cv)}-${String(b.year).trim()}`, info, b.file.name] : [info, b.file.name], companies: cO >= 0 ? [...new Set(rows.map(r => cellText(r[cO])).filter(Boolean))] : [], caseCount: N, amount: total });
+    const lk = trkLinkBangke({ tpa: b.profile, linkDate: todayISO(), texts: [...(b.profile === 'PPY' ? [`${ppyNum(b.cv)}-${String(b.year).trim()}`] : []), info, ...(b.infoMan != null ? [String(b.infoMan)] : []), b.file.name], companies: cO >= 0 ? [...new Set(rows.map(r => cellText(r[cO])).filter(Boolean))] : [], caseCount: N, amount: total });
     const m = linkMsg(lk); if (m) msgs.push({ t: m });
   } catch (e) { msgs.push({ t: 'Không liên kết được Theo dõi HS TPA: ' + e.message }); }
   renderBody();
@@ -2653,7 +2657,7 @@ const DN_TPL_B64 = 'UEsDBBQAAAAIAAAAa13wSsJ/+gAAACwCAAATAAAAW0NvbnRlbnRfVHlwZXNd
 
 // ---- dntt ----
 /* ===================== Tạo Giấy ĐNTT ===================== */
-S.dn = { profile: '', tpc: false, file: null, outName: '', gd: '', cv: '', year: '', month: '', dot: '', result: null };
+S.dn = { contentMan: null, profile: '', tpc: false, file: null, outName: '', gd: '', cv: '', year: '', month: '', dot: '', result: null };
 function dnContent(d, partial) {
   const t = v => String(v == null ? '' : v).trim(), p = d.profile; let c = '', ok = true;
   if (p === 'FHVI') { const g = t(d.gd).replace(/^GIAI\s*ĐOẠN\s*:?\s*/i, '').replace(/\s*[–-]?\s*PJICO\s*TDU\s*$/i, '').trim(); ok = !!g; c = `GIAI ĐOẠN ${g} – PJICO TDU`; }
@@ -2755,7 +2759,9 @@ ACT.dnGo = async () => {
   S.xlLast = 'dn'; if (!S.dn.profile) return alert('Chọn TPA trước nha ní.');
   if (S.dn.profile === 'FHVI') { const er = fhviErr(S.dn.gd); if (er) return alert(er); }
   const d = S.dn; d.result = null; const msgs = []; const fail = t => { msgs.push({ t, cls: 'res-bad' }); d.result = { msgs }; renderBody(); };
-  const content = dnContent(d); if (content == null) return alert('Nhập đủ nội dung thanh toán theo TPA đã chọn nha ní.');
+  const contentTpl = dnContent(d); if (contentTpl == null) return alert('Nhập đủ nội dung thanh toán theo TPA đã chọn nha ní.');
+  if (d.contentMan != null && !String(d.contentMan).trim()) return alert('Nội dung thanh toán đang trống nha ní.');
+  const content = d.contentMan != null ? String(d.contentMan).trim() : contentTpl;
   if (!d.file) return alert('Chọn file Bảng kê trước nha ní.');
   const sh = (await readExcelFile(d.file))[0]; if (!sh) return fail('File bảng kê không có sheet nào.');
   const t = bkTotal(sh.rows); if (t.err) return fail(t.err);
@@ -2764,7 +2770,7 @@ ACT.dnGo = async () => {
   const base = d.outName.trim() ? safeFilePart(d.outName.trim(), 'DNTT') : 'DNTT - ' + stdLabel(d.file.name);
   d.result = { msgs, total: t.total, u8, name: safeFilePart(withTpc(base, d.tpc), 'DNTT') + '.docx' };
   msgs.push({ t: `Đã tạo Giấy ĐNTT ${money(t.total)} đồng.`, cls: 'res-ok' });
-  const p = d.profile, tx = [content, d.file.name];
+  const p = d.profile, tx = content === contentTpl ? [content, d.file.name] : [content, contentTpl, d.file.name];
   if (p === 'PPY') tx.unshift(`GD ${ppyNum(d.cv)}-${String(d.year).trim()} THANG ${String(d.month).trim()} DOT ${String(d.dot).trim()}`);
   if (p === 'FHVI') tx.unshift('GD ' + fhviNorm(String(d.gd || '').replace(/^\s*GD\s*/i, '')));
   try { msgs.push(trkLinkDntt({ tpa: p, date: td, texts: tx, count: t.n || 0, amount: t.total })); } catch (e) { msgs.push({ t: 'Chưa cập nhật được Theo dõi HS TPA: ' + e.message, cls: 'warn2' }); }
@@ -2774,6 +2780,18 @@ ACT.dnGo = async () => {
 // ---- xl ----
 /* ===================== Trang gộp Xử lý DPBT: thông tin chung + 3 bước + kết quả bước vừa chạy ===================== */
 S.xlLast = ''; S.xlFocus = '';
+/* Ô nội dung sửa tay: mặc định app ghép theo mẫu; gõ vào thì giữ bản sửa tay cho tới khi bấm Về mẫu gốc / đổi TPA */
+const XL_MAN = { conv: ['noteMan', 'pvConv'], bk: ['infoMan', 'pvBk'], dn: ['contentMan', 'pvDn'] };
+function xlAuto(key) { try { if (key === 'conv') { const n = convNote(S.conv, true); return (n && n.note) || ''; } if (key === 'bk') return S.bk.profile ? bkFull(S.bk, true) || '' : ''; return S.dn.profile ? dnContent(S.dn, true) || '' : ''; } catch (e) { return ''; } }
+const xlManVal = key => { const v = S[key][XL_MAN[key][0]]; return v == null ? null : v; };
+function manBox(label, key) {
+  const [f, id] = XL_MAN[key], man = S[key][f] != null, val = man ? S[key][f] : xlAuto(key);
+  return `<div class="box manbox${man ? ' man' : ''}" id="mb-${key}"><div class="manh"><span class="mut sm">${label}</span><span class="manbd">Đã sửa tay</span><button class="btn sm2 manrs" data-nc data-act="xlManReset" data-v="${key}" title="Bỏ phần sửa tay, dùng lại nội dung ghép theo mẫu">Về mẫu gốc</button></div>
+  <textarea class="in prevta" id="${id}" rows="2" data-inp="xlMan" data-v="${key}" placeholder="Chọn TPA và nhập Thông tin chung để app ghép nội dung">${esc(val)}</textarea></div>`;
+}
+ACT.xlMan = (v, el) => { const key = el.dataset.v, f = XL_MAN[key][0]; S[key][f] = v; const b = document.getElementById('mb-' + key); if (b) b.classList.add('man'); };
+ACT.xlManReset = v => { S[v][XL_MAN[v][0]] = null; renderBody(); };
+const xlManClear = () => { S.conv.noteMan = null; S.bk.infoMan = null; S.dn.contentMan = null; };
 function xlShared() {
   const c = S.conv, p = c.profile;
   const f = p === 'FHVI' ? fld('Giai đoạn', inp('conv.gd', 'VD: 29.10 - 31.10.26', 'data-change="fhviFix"'), 'xw')
@@ -2790,7 +2808,7 @@ function xlConvCol(done) {
   const own = c.upd ? '' : c.profile === 'FPTIS' ? fld('Số CV (DPBT)', inp('conv.fptCv', 'VD: 1820/26/FPT IS'), 'full') : '';
   return `<div class="panel xlcol" id="xc-conv" data-scope="conv">${xlHead(1, 'Chuyển đổi DPBT', done)}
   <div class="grid">${c.upd ? '' : fld('Ngày lập dự phòng / Ngày thông báo', dtInp('conv.date'), 'full')}${own}${filePick('conv.file', 'File nguồn')}</div>
-  ${c.upd ? '' : `<div class="box"><span class="mut sm">Xem trước Ghi chú</span><div class="prev" id="pvConv">${esc(np ? np.note : '') || '—'}</div></div>`}
+  ${c.upd ? '' : manBox('Ghi chú', 'conv')}
   <div class="box"><span class="mut">DATA đang dùng: </span><b class="res-ok">${DB.data.rows.length} dòng</b> <a href="#" data-act="convData">Quản lý DATA</a></div>
   <div class="act"><button class="btn ok" data-enter-btn data-act="convGo">${c.upd ? 'Đối chiếu và cập nhật' : 'Chuyển đổi & lưu dữ liệu'}</button>${f ? `<button class="btn pri" data-act="convDl" data-v="full">${c.result.kind === 'fix' ? 'Tải file Fix lỗi' : 'Tải file FULL'}</button>` : ''}${f && c.result.unitCount > 1 ? '<button class="btn" data-act="convSplit">Tách theo mã phòng</button>' : ''}</div></div>`;
 }
@@ -2798,15 +2816,15 @@ function xlBkCol(done) {
   const b = S.bk, r = b.result;
   return `<div class="panel xlcol" id="xc-bk" data-scope="bk">${xlHead(2, 'Lập bảng kê', done)}
   <div class="grid">${fld('Ngày tờ trình / ngày ký', dtInp('bk.date'), 'full')}${filePick('bk.file', 'File nguồn DPBT')}${fld('Tên file xuất (tùy chọn)', inp('bk.outName'), 'full')}</div>
-  <div class="box"><span class="mut sm">Xem trước Tờ trình</span><div class="prev" id="pvBk">${b.profile ? esc(bkFull(b, true)) : '—'}</div></div>
+  ${manBox('Tờ trình', 'bk')}
   <div class="act"><button class="btn ok" data-enter-btn data-act="bkGo">Tạo bảng kê</button>${r && r.u8 ? '<button class="btn pri" data-act="bkDl">Tải bảng kê</button>' : ''}</div></div>`;
 }
 function xlDnCol(done) {
   const d = S.dn, r = d.result, pay = dnPay(d.profile);
   return `<div class="panel xlcol" id="xc-dntt" data-scope="dn">${xlHead(3, 'Giấy ĐNTT', done)}
   <div class="grid">${filePick('dn.file', 'File Bảng kê')}${fld('Tên file Word (để trống sẽ tự lấy từ tên BK)', inp('dn.outName'), 'full')}</div>
-  <div class="box"><div class="mut sm">Nội dung thanh toán:</div><div class="prev" id="pvDn">${d.profile ? esc(dnContent(d, true)) : '—'}</div>
-  <div class="mut sm">Người thụ hưởng:</div><div class="prev">${esc(pay.name) || '—'}</div><div class="mut sm">STK / Ngân hàng:</div><div class="prev">${pay.account ? esc(pay.account) + ' / ' + esc(pay.bank) : '—'}</div>
+  ${manBox('Nội dung thanh toán', 'dn')}
+  <div class="box"><div class="mut sm">Người thụ hưởng:</div><div class="prev">${esc(pay.name) || '—'}</div><div class="mut sm">STK / Ngân hàng:</div><div class="prev">${pay.account ? esc(pay.account) + ' / ' + esc(pay.bank) : '—'}</div>
   ${r && r.total ? `<div class="mut sm">Số tiền:</div><div class="prev">${money(r.total)} đồng</div><div class="mut sm">Bằng chữ:</div><div class="prev">${esc(moneyWords(r.total))}</div>` : ''}</div>
   <div class="act"><button class="btn ok" data-enter-btn data-act="dnGo">Tạo Giấy ĐNTT</button>${r && r.u8 ? '<button class="btn pri" data-act="dnDl">Tải file Word</button>' : ''}</div></div>`;
 }
@@ -2855,7 +2873,7 @@ function syncSharedRaw(k) {
   const ppyMap = { conv: { no: 'ppyNo', year: 'ppyYear', month: 'ppyMonth', dot: 'ppyDot' }, bk: { no: 'cv', year: 'year', month: 'month', dot: 'dot' }, dn: { no: 'cv', year: 'year', month: 'month', dot: 'dot' } };
   const v = getPath(S, k), cur = S[m[1] === 'dn' ? 'dn' : m[1]], prof = cur.profile;
   const put = (t, f) => { if (t !== m[1]) setPath(S, (t === 'dn' ? 'dn' : t) + '.' + f, v); };
-  if (kind) { for (const t of ['conv', 'bk', 'dn']) put(t, canon[kind][t]); if (kind === 'profile') xlPushShared(); return; }
+  if (kind) { for (const t of ['conv', 'bk', 'dn']) put(t, canon[kind][t]); if (kind === 'profile') { xlPushShared(); xlManClear(); } return; }
   const fptMap = { conv: {}, bk: { cv: 'cv', year: 'year' }, dn: { cv: 'cv', year: 'year' } };
   for (const [mp, ok] of [[insMap, prof === 'INS'], [ppyMap, prof === 'PPY'], [fptMap, prof === 'FPTIS']]) {
     if (!ok) continue; const back = Object.entries(mp[m[1]]).find(([, f]) => f === m[2]); if (!back) continue;
@@ -2886,7 +2904,7 @@ RENDER.home = () => {
 };
 function livePrev() {
   if (typeof trkKhoRefresh === 'function') trkKhoRefresh();
-  const set = (id, f) => { const e = document.getElementById(id); if (e) { try { e.textContent = f() || '—'; } catch (x) { /* bỏ qua */ } } };
+  const set = (id, f) => { const e = document.getElementById(id); if (!e) return; try { if (e.tagName === 'TEXTAREA') { const k = e.dataset.v; if (S[k][XL_MAN[k][0]] == null) e.value = xlAuto(k); } else e.textContent = f() || '—'; } catch (x) { /* bỏ qua */ } };
   set('pvConv', () => { const n = convNote(convState(), true); return n && n.note; }); set('pvBk', () => bkFull(S.bk, true)); set('pvDn', () => dnContent(S.dn, true));
 }
 
