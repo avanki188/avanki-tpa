@@ -37,7 +37,7 @@ main{padding:22px 26px;min-width:0}.top{display:flex;align-items:center;justify-
 .box{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--card2);display:block}.box.on{border-color:var(--pri)}
 .prev{margin:4px 0 8px;padding:7px 10px;border-radius:8px;background:var(--inp);border:1px solid var(--line);min-height:20px;word-break:break-word}
 .pfx{display:flex;align-items:center;gap:6px}.pfx .in{flex:1}.pfxl{color:var(--mut);white-space:nowrap}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}.panel h3{margin:0 0 12px;font-size:16px}.panel h4{margin:0 0 8px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}.panel h3{margin:0 0 12px;font-size:16px}.panel>h3.fh{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}.panel>h3.fh .fbtn{margin-left:auto;font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--mut);cursor:pointer;white-space:nowrap}.panel>h3.fh .fbtn:hover{color:var(--fg);border-color:var(--pri)}.panel.fold>h3.fh{margin:0}.panel.fold>:not(h3){display:none!important}.panel h4{margin:0 0 8px}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}.bar.ex{align-items:flex-start}.sp{flex:1}
 .in{height:38px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:var(--inp);color:var(--fg);font:inherit;min-width:0}textarea.in{height:auto;padding:8px 11px;resize:vertical}
 .in.w1{width:230px}.in.dt{width:130px}.in.bad{border-color:var(--bad)}.in:focus{outline:2px solid var(--pri);outline-offset:-1px}.in:disabled{opacity:.5}
@@ -979,7 +979,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.16-3';
+const APP_VER = '2026.11.16-4';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1939,6 +1939,20 @@ ACT.setDir = async () => { let h; try { h = await showDirectoryPicker({ mode: 'r
 ACT.setDevice = async () => { const n = await promptBox('Tên máy này (VD: Cty, Nhà)', localStorage.getItem('dpbt-device') || ''); if (n && n.trim()) { localStorage.setItem('dpbt-device', n.trim()); toast('Đã đổi tên máy: ' + n.trim()); } };
 const _tabAct = ACT.tab; ACT.tab = v => { if (v === 'set' && S.tab !== 'set') S.set = null; _tabAct(v); };
 
+const SET_FOLD_DEF = { s1: 1, s2: 1, s3: 1 };
+const setFoldKey = t => { const m = /^\s*(\d+)\./.exec(t); return m ? 's' + m[1] : 'x-' + noAccent(t).replace(/[^a-z0-9]+/gi, '').slice(0, 20).toLowerCase(); };
+function setFoldGet() { let o = null; try { o = JSON.parse(localStorage.getItem('dpbt-setfold') || 'null'); } catch (e) {} return o && typeof o === 'object' ? o : Object.assign({}, SET_FOLD_DEF); }
+AFTER.set = () => {
+  const st = setFoldGet();
+  document.querySelectorAll('#body > .panel').forEach(p => {
+    const h = p.querySelector(':scope > h3'); if (!h || h.classList.contains('fh')) return;
+    const k = setFoldKey(h.textContent); h.classList.add('fh');
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'fbtn'; h.appendChild(b);
+    const paint = () => { const f = !!st[k]; p.classList.toggle('fold', f); b.textContent = f ? '▸ Mở rộng' : '▾ Thu gọn'; b.title = f ? 'Mở mục này' : 'Thu gọn mục này'; };
+    h.addEventListener('click', e => { e.preventDefault(); st[k] = st[k] ? 0 : 1; try { localStorage.setItem('dpbt-setfold', JSON.stringify(st)); } catch (er) {} paint(); });
+    paint();
+  });
+};
 AFTER.search = () => { const c = document.getElementById('srAllCb'); if (c) c.indeterminate = !!S._srSome; fitMeasure('search'); };
 
 // ---- tpl ----
