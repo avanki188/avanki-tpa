@@ -30,6 +30,7 @@ main{padding:22px 26px;min-width:0}.top{display:flex;align-items:center;justify-
 .xlh{display:flex;align-items:center;gap:10px;margin:0 0 2px}.xlh .sn{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--pri);color:#fff;font-size:13px;font-weight:800}.xlh .sn.ok{background:#16a34a}
 .xlcol.flash{animation:xlflash 1.2s ease}@keyframes xlflash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 2px var(--pri),0 0 22px var(--glow)}}
 .xlres:empty{display:none}
+.psum{font-size:15px;margin:2px 0}tr.ps-ok td{background:rgba(34,197,94,.13)}tr.ps-chk td{background:rgba(251,191,36,.16)}
 .manh{display:flex;align-items:center;gap:8px;margin-bottom:6px}.manbd,.manrs{display:none}.manbox.man .manbd{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;color:#1a1300;background:#fbbf24}.manbox.man .manrs{display:inline-flex;margin-left:auto}
 .prevta{width:100%;min-height:58px;resize:vertical;font-weight:700;line-height:1.45;font-family:inherit}.manbox.man .prevta{border-color:#fbbf24;box-shadow:0 0 0 1px rgba(251,191,36,.35)}
 .two{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:16px;align-items:start}@media(max-width:1000px){.two{grid-template-columns:1fr}}
@@ -978,7 +979,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.16-1';
+const APP_VER = '2026.11.16-2';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -2458,10 +2459,88 @@ ACT.fixPend = v => {
   row.updatedAt = new Date().toISOString(); touch('tracker'); renderBody();
   toast(`Đã ghi pending ${list.length}hs vào đợt ${row.officialLetter}`);
 };
-const TOOL_FN = [['cccd', 'Bổ sung CCCD'], ['upd', 'Update dữ liệu thiếu'], ['quarter', 'DPBT quý'], ['fix', 'Fix lỗi']];
+/* ===================== Kiểm tra phát sinh (tab Công cụ): File cần dò ↔ File nguồn (báo cáo tổng) ===================== */
+const PS_ALIAS = {
+  name: ['TENNDBH', 'HOTENNDBH', 'HOVATENNDBH', 'TENNGUOIDUOCBAOHIEM', 'HOTENNGUOIDUOCBAOHIEM', 'NGUOIDUOCBAOHIEM', 'HOTEN', 'HOVATEN', 'TEN', 'FULLNAME', 'MEMBERNAME', 'INSUREDNAME', 'NAME'],
+  dob: ['NGAYSINH', 'DOB', 'NGAYSINHNDBH', 'NGAYTHANGNAMSINH', 'DATEOFBIRTH', 'BIRTHDATE', 'BIRTHDAY'],
+  id: ['CMNDCCCD', 'CCCDCMND', 'CCCD', 'CMND', 'SOCCCD', 'SOCMND', 'SOCCCDCMND', 'SOCMNDCCCD', 'CANCUOCCONGDAN', 'SOGIAYTO', 'NATIONALID', 'IDNO'],
+  claim: ['SOHSBT', 'SOHOSOBOITHUONG', 'SOHOSO', 'CLAIMNO', 'CLAIMNUMBER'],
+  st: ['TINHTRANGBOITHUONG', 'TRANGTHAIBOITHUONG', 'CLAIMSTATUS']
+};
+const PS_LABEL = { name: 'Tên NĐBH', dob: 'Ngày sinh', id: 'CCCD (CMND/CCCD)', claim: 'Số HSBT', st: 'Tình trạng bồi thường' };
+/* Tìm dòng tiêu đề trong 30 dòng đầu: cột lấy theo alias ưu tiên (VD "Tên NĐBH" trước "Tên nhân viên") */
+function psHead(rows, need) {
+  for (let i = 0; i < Math.min(30, rows.length); i++) {
+    const h = (rows[i] || []).map(x => hk(x == null ? '' : String(x))), col = {};
+    for (const k of Object.keys(PS_ALIAS)) { for (const a of PS_ALIAS[k]) { const j = h.indexOf(a); if (j >= 0) { col[k] = j; break; } } }
+    if (need.every(k => col[k] != null)) return { hi: i, col };
+  }
+  return null;
+}
+const psName = v => noAccent(v == null ? '' : String(v)).replace(/\s+/g, ' ').trim();
+const psId = v => ccClean(v).replace(/\*/g, '');
+const psDob = v => { if (v == null || v === '') return ''; if (typeof v === 'number') return serialToISO(v); return parseDateInput(String(v).trim()) || String(v).trim(); };
+const psDobTxt = v => { if (v == null) return ''; if (typeof v === 'number') return fmtVN(serialToISO(v)); return String(v).trim(); };
+const PS_OK = 'DA GIAI QUYET BOI THUONG';
+ACT.psGo = async () => {
+  const t = S.tool; t.ps = null; t.psView = 'all';
+  if (!t.file) return alert('Chọn File cần dò trước nha ní.');
+  if (!t.listFile) return alert('Chọn File nguồn (báo cáo tổng) nha ní.');
+  const cs = await readExcelFile(t.file), ss = await readExcelFile(t.listFile);
+  let C = null, cRows = null; for (const sh of cs) { const h = psHead(sh.rows, ['name', 'id']); if (h) { C = h; cRows = sh.rows; break; } }
+  if (!C) return alert('File cần dò chưa thấy đủ cột Tên NĐBH và CCCD. Ní kiểm tra lại dòng tiêu đề nha.');
+  let N = null, nRows = null; for (const sh of ss) { const h = psHead(sh.rows, ['name', 'id', 'claim', 'st']); if (h) { N = h; nRows = sh.rows; break; } }
+  if (!N) { const h = ss.length ? psHead(ss[0].rows, ['name']) : null, miss = ['name', 'id', 'claim', 'st'].filter(k => !(h && h.col[k] != null)); return alert(`File nguồn chưa thấy đủ cột: ${miss.map(k => PS_LABEL[k]).join(', ') || 'Tên NĐBH, CMND/CCCD, Số HSBT, Tình trạng bồi thường'}.`); }
+  /* File cần dò: bỏ dòng trống, thiếu CCCD thì báo lỗi và dừng */
+  const items = [], lack = [];
+  for (let i = C.hi + 1; i < cRows.length; i++) {
+    const r = cRows[i] || [], nm = r[C.col.name], id = r[C.col.id], dob = C.col.dob != null ? r[C.col.dob] : '';
+    if (![nm, id, dob].some(x => String(x == null ? '' : x).trim())) continue;
+    if (!psId(id)) { lack.push(`Dòng ${i + 1} – ${String(nm || '(không tên)').trim()}`); continue; }
+    items.push({ name: String(nm == null ? '' : nm).trim(), dob, id: String(id).trim() });
+  }
+  if (lack.length) return alert(`File cần dò có ${lack.length} dòng thiếu CCCD, app chưa chạy:\n${lack.slice(0, 20).join('\n')}${lack.length > 20 ? '\n…' : ''}\nNí bổ sung CCCD rồi chạy lại nha.`);
+  if (!items.length) return alert('File cần dò chưa có dòng dữ liệu nào.');
+  /* File nguồn: gom theo tên */
+  const byName = new Map();
+  for (let i = N.hi + 1; i < nRows.length; i++) {
+    const r = nRows[i] || [], nm = psName(r[N.col.name]); if (!nm) continue;
+    (byName.get(nm) || byName.set(nm, []).get(nm)).push({ id: psId(r[N.col.id]), dob: N.col.dob != null ? psDob(r[N.col.dob]) : '', claim: String(r[N.col.claim] == null ? '' : r[N.col.claim]).trim(), st: String(r[N.col.st] == null ? '' : r[N.col.st]).trim() });
+  }
+  const out = items.map(it => {
+    const list = byName.get(psName(it.name)) || [], same = list.filter(x => x.id && x.id === psId(it.id));
+    const ok = same.filter(x => noAccent(x.st).replace(/\s+/g, ' ').trim() === PS_OK), row = { name: it.name, dob: psDobTxt(it.dob), id: it.id, claims: [...new Set(ok.map(x => x.claim).filter(Boolean))].join(', ') };
+    if (ok.length) return { ...row, kind: 'ok', note: `Đã phát sinh bồi thường (${new Set(ok.map(x => x.claim)).size} HS)` };
+    if (same.length) { const c = {}; same.forEach(x => { c[x.st || 'Không rõ'] = (c[x.st || 'Không rõ'] || 0) + 1; }); return { ...row, kind: 'no', note: 'Chưa phát sinh – có HS ' + Object.entries(c).map(([k, v]) => `${k} (${v})`).join(', ') }; }
+    if (list.length) { const d = psDob(it.dob); if (d && list.some(x => x.dob && x.dob === d)) return { ...row, kind: 'chk', note: 'Trùng tên + ngày sinh, khác CCCD – cần kiểm tra' }; return { ...row, kind: 'no', note: 'Chưa phát sinh (trùng tên người khác)' }; }
+    return { ...row, kind: 'no', note: 'Chưa phát sinh' };
+  });
+  t.ps = { rows: out, src: t.listFile.name, n: items.length }; renderBody();
+  toast(`Đã kiểm tra ${items.length} NĐBH`);
+};
+ACT.psView = v => { S.tool.psView = v; renderBody(); };
+function psResultHTML(r) {
+  if (!r) return '';
+  const cnt = k => r.rows.filter(x => x.kind === k).length, ok = cnt('ok'), chk = cnt('chk'), no = cnt('no'), v = S.tool.psView || 'all';
+  const chip = (k, l, n) => `<button class="btn sm2${v === k ? ' pri' : ''}" data-nc data-act="psView" data-v="${k}">${l} (${n})</button>`;
+  const rows = r.rows.filter(x => v === 'all' || x.kind === v);
+  return `<div class="panel"><h3>Kết quả kiểm tra phát sinh</h3>
+  <p class="psum"><b class="res-ok">${ok} / ${r.n}</b> NĐBH đã phát sinh bồi thường${chk ? ` · <b class="warn">${chk}</b> cần kiểm tra` : ''} <span class="mut sm">· nguồn: ${esc(r.src)}</span></p>
+  <div class="bar" style="margin:6px 0 10px">${chip('all', 'Tất cả', r.n)}${chip('ok', 'Đã phát sinh', ok)}${chip('chk', 'Cần kiểm tra', chk)}${chip('no', 'Chưa phát sinh', no)}</div>
+  ${rows.length ? dataTable(['STT', 'Tên NĐBH', 'Ngày sinh', 'CMND/CCCD', 'Số HSBT', 'Ghi chú'], rows.map(x => `<tr class="ps-${x.kind}"><td class="ctr">${r.rows.indexOf(x) + 1}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.dob)}</td><td>${esc(x.id)}</td><td>${esc(x.claims)}</td><td>${esc(x.note)}</td></tr>`)) : '<p class="mut">Không có dòng nào.</p>'}</div>`;
+}
+function psFormHTML() {
+  const t = S.tool;
+  return `<div class="panel" data-scope="tool"><div class="grid">${filePick('tool.file', 'File cần dò (Tên NĐBH · Ngày sinh · CCCD)')}${filePick('tool.listFile', 'File nguồn – báo cáo tổng (Tên NĐBH · Ngày sinh · CMND/CCCD · Số HSBT · Tình trạng bồi thường)')}</div>
+  <div class="act"><button class="btn c-teal" data-nc data-enter-btn data-act="psGo">Kiểm tra</button></div>
+  <p class="mut sm" style="margin-top:10px">Đã phát sinh = trùng <b>Tên NĐBH + CCCD</b> với dòng có Tình trạng <b>"Đã giải quyết bồi thường"</b> ở file nguồn. File cần dò có dòng thiếu CCCD thì app báo lỗi, không chạy. Kết quả hiện ngay bên dưới, không xuất file, không lưu vào kho.</p></div>
+  ${psResultHTML(t.ps)}`;
+}
+const TOOL_FN = [['cccd', 'Bổ sung CCCD'], ['upd', 'Update dữ liệu thiếu'], ['quarter', 'DPBT quý'], ['fix', 'Fix lỗi'], ['ps', 'Kiểm tra phát sinh']];
 RENDER.tool = () => {
   const t = S.tool, seg = `<div class="bar" style="margin-bottom:12px">${TOOL_FN.map(([k, l]) => `<button class="btn${t.fn === k ? ' pri' : ''}" data-nc data-act="toolFn" data-v="${k}">${l}</button>`).join('')}</div>`;
   if (t.fn === 'fix') return seg + fxFormHTML();
+  if (t.fn === 'ps') return seg + psFormHTML();
   if (t.fn !== 'cccd') return seg + convFormHTML('tool');
   return seg + `<div class="two"><div><div class="panel" data-scope="tool"><div class="grid">
   ${fld('TPA/Profile', `<select class="in" data-k="tool.profile" data-r="1">${optHTML(TPAS, t.profile, 'Chọn TPA/Profile')}</select>`)}</div>
@@ -2473,7 +2552,7 @@ RENDER.tool = () => {
 };
 ACT.toolFn = v => {
   const t = S.tool; if (t.fn === v) return; t.fn = v; t.quarter = v === 'quarter'; t.fix = v === 'fix'; t.upd = v === 'upd';
-  t.file = null; t.fixFile = null; t.listFile = null; t.result = null; t.review = null; t.confirmSig = ''; t.cc = null; t.fx = null; renderBody();
+  t.file = null; t.fixFile = null; t.listFile = null; t.result = null; t.review = null; t.confirmSig = ''; t.cc = null; t.fx = null; t.ps = null; t.psView = 'all'; renderBody();
 };
 function ccResultHTML(r) {
   if (!r) return '';
