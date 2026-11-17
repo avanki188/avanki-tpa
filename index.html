@@ -979,7 +979,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.17-2';
+const APP_VER = '2026.11.17-3';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1399,6 +1399,9 @@ ACT.trkEdit = v => {
 };
 const trkWhy = r => r.pending && r.pending.length ? `Đợt còn ${r.pending.length} hồ sơ pending` : String(r.accountingDate || '').trim() && String(r.enteredDate || '').trim() ? 'Đợt đã có đủ Ngày nhập HS và Ngày chuyển KT'
   : String(r.accountingDate || '').trim() ? 'Đợt đã có Ngày chuyển KT' : normalize(r.paymentNote).includes('PENDING') ? 'Ghi chú có PENDING' : String(r.enteredDate || '').trim() ? 'Đợt đã có Ngày nhập HS' : 'Theo rule trạng thái';
+/* Giữ danh sách pending (ghi từ Fix lỗi) khi lưu form; chỉ gỡ bằng nút "Đã bổ sung xong" */
+const trkKeepPend = e => { const o = e.id ? DB.tracker.rows.find(r => r.id === e.id) : null, L = (o && o.pending) || e.pending || []; return L.length ? [...L] : undefined; };
+const trkPendNote = (note, L) => { const base = String(note || '').replace(/\s*(?:·\s*)?pending\s*\d+\s*hs\s*/ig, '\n').split(/\r?\n/).map(x => x.trim()).filter(Boolean).join('\n'); return L && L.length ? (base ? base + '\n' : '') + `pending ${L.length}hs` : String(note || ''); };
 ACT.trkSave = async () => {
   const e = S.trk.edit, rd = parseDateInput(e.receivedDate);
   if (!rd || !e.tpa) return alert('Ngày nhận và TPA là bắt buộc.');
@@ -1406,7 +1409,7 @@ ACT.trkSave = async () => {
   const dates = {};
   for (const [k, l, lb] of [['enteredDate', 'entL', 'Ngày nhập HS'], ['accountingDate', 'accL', 'Ngày chuyển kế toán']]) { const r = trkDateLines((e[l] || []).join('\n'), trkYearOf(rd)); if (r.bad.length) return alert(`${lb}: "${r.bad[0]}" không phải ngày hợp lệ, ví dụ 11/11/2026.`); dates[k] = r.ok.join('\n'); }
   if (!String(e.officialLetter || '').trim() && !await confirmBox({ title: 'Chưa nhập Công văn, vẫn lưu?', msg: 'Đợt hồ sơ này chưa có Công văn.', okText: 'Vẫn lưu', cancelText: 'Quay lại', danger: false })) return;
-  const row = cleanTracker({ id: e.id || uid(), receivedDate: rd, tpa: e.tpa, officialLetter: String(e.officialLetter || '').trim(), amount: e.amount, caseCount: e.caseCount, status: e.status, tpc: e.tpc, enteredDate: dates.enteredDate, accountingDate: dates.accountingDate, paymentNote: e.paymentNote || '', createdAt: e.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
+  const row = cleanTracker({ id: e.id || uid(), receivedDate: rd, tpa: e.tpa, officialLetter: String(e.officialLetter || '').trim(), amount: e.amount, caseCount: e.caseCount, status: e.status, tpc: e.tpc, enteredDate: dates.enteredDate, accountingDate: dates.accountingDate, paymentNote: trkPendNote(e.paymentNote, trkKeepPend(e)), pending: trkKeepPend(e), createdAt: e.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
   if (!e.id) { const k = trkDupKey(row); if (DB.tracker.rows.some(r => trkDupKey(r) === k)) return alert('Đợt hồ sơ này đã có trong danh sách.'); DB.tracker.rows.push(row); }
   else { const i = DB.tracker.rows.findIndex(r => r.id === e.id); if (i >= 0) DB.tracker.rows[i] = row; }
   touch('tracker'); closeModal(); renderBody();
