@@ -979,7 +979,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.17-1';
+const APP_VER = '2026.11.17-2';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1261,7 +1261,7 @@ const linkMsg = r => r.startsWith('updated:') ? 'Đã cập nhật Theo dõi HS 
 function trkList() {
   const a = S.trk.applied, f = a.f, q = normSearch(f.q), rows = DB.tracker.rows.filter(r => {
     if (r.receivedDate.slice(0, 4) !== String(a.year)) return false;
-    if (!a.all && (String(r.accountingDate || '').trim() || r.status === 'Đã chuyển KT' || r.status === 'Hoàn thành')) return false;
+    if (!a.all && !(r.pending || []).length && (String(r.accountingDate || '').trim() || r.status === 'Đã chuyển KT' || r.status === 'Hoàn thành')) return false;
     if (f.month && +r.receivedDate.slice(5, 7) !== +f.month) return false;
     if (f.day && +r.receivedDate.slice(8, 10) !== +f.day) return false;
     if (q && !normSearch(r.officialLetter + ' ' + r.paymentNote).includes(q)) return false;
