@@ -52,7 +52,7 @@ select.in{padding-right:6px}.btn{height:38px;padding:0 15px;border:1px solid var
 .hb{flex:none;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}.hb.g{background:rgba(20,184,166,.18);color:#14b8a6}.hb.y{background:rgba(255,201,51,.2);color:#ffc933}.hb.r{background:rgba(239,68,68,.18);color:#ef4444}.hb.p{background:rgba(244,114,182,.2);color:#f472b6}
 .hdpg{position:sticky;bottom:0;display:flex;gap:10px;align-items:center;justify-content:center;padding:10px 0;margin-top:10px;background:var(--bg);z-index:2}
 .tw.sr th{background:#14224f;color:var(--pri);border-bottom:2px solid var(--pri);font-weight:700;letter-spacing:.02em}:root[data-theme=light] .tw.sr th{background:#1b2a5e;color:#ffb26b}.tw.sr td{font-weight:700}.tw.sr td.hs{color:var(--pri);font-weight:700}
-.tw.trk th{background:#14224f;color:var(--pri);border-bottom:2px solid var(--pri);font-weight:700;letter-spacing:.02em;vertical-align:middle}:root[data-theme=light] .tw.trk th{background:#1b2a5e;color:#ffb26b}.tw.trk td{vertical-align:middle;height:52px;font-weight:700}.tw.trk td .dl,.tw.trk td .bd{font-weight:600}.tw.trk .hsn{color:var(--pri);font-weight:800;font-size:14px}.tw.trk td .mut{font-weight:600}.tw.trk td.ctr,.tw.trk th:nth-child(1),.tw.trk th:nth-child(4),.tw.trk th:nth-child(6),.tw.trk th:nth-child(7),.tw.trk th:nth-child(8),.tw.trk th:nth-child(9),.tw.trk th:nth-child(11){text-align:center}.tw.trk th:nth-child(5){text-align:right}.tw.trk td.note{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tw.trk th{background:#14224f;color:var(--pri);border-bottom:2px solid var(--pri);font-weight:700;letter-spacing:.02em;vertical-align:middle}:root[data-theme=light] .tw.trk th{background:#1b2a5e;color:#ffb26b}.tw.trk td{vertical-align:middle;height:52px;font-weight:700}.tw.trk td .dl,.tw.trk td .bd{font-weight:600}.tw.trk .hsn{color:var(--pri);font-weight:800;font-size:14px}.tw.trk td .mut{font-weight:600}.tw.trk td.ctr,.tw.trk th:nth-child(1),.tw.trk th:nth-child(4),.tw.trk th:nth-child(6),.tw.trk th:nth-child(7),.tw.trk th:nth-child(8),.tw.trk th:nth-child(9),.tw.trk th:nth-child(11){text-align:center}.tw.trk th:nth-child(5){text-align:right}.tw.trk td.note{max-width:260px;overflow:hidden;white-space:nowrap}td.note .nt1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}td.note .pdl{display:inline-block;margin-top:2px}
 a.cvl,a.pdl,a.ntl{color:inherit;text-decoration:underline dotted rgba(255,122,26,.7);text-underline-offset:3px;cursor:pointer}a.cvl:hover,a.pdl:hover,a.ntl:hover{color:var(--pri);text-decoration-style:solid}
 a.pdl{color:#fbbf24;font-weight:800}
 .kb{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;border:1px solid}
@@ -979,7 +979,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.17-3';
+const APP_VER = '2026.11.17-4';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1283,9 +1283,10 @@ RENDER.trk = () => {
   const body = slice.map(r => {
     const d = trkDerived(r), cls = d.closed ? 'gray' : (!d.finished && d.days >= 6) ? 'red' : (!d.finished && d.days > 3) ? 'yellow' : 'green', note = String(r.paymentNote || '').replace(/\s*\n\s*/g, ' · ');
     const km = trkKhoMatch(r.tpa, r.officialLetter), kc = !km.n ? 'none' : (km.n === Math.round(r.caseCount || 0) && Math.abs(km.sum - numAmount(r.amount)) <= 1) ? 'ok' : 'lech';
-    const noteH = (r.pending && r.pending.length) ? esc(note).replace(/pending\s*\d+\s*hs/i, x => `<a class="pdl" data-act="trkPend" data-v="${r.id}" title="Xem hồ sơ pending">${x}</a>`) : esc(note);
+    const pn = (r.pending || []).length, base = pn ? String(r.paymentNote || '').replace(/\s*(?:·\s*)?pending\s*\d+\s*hs\s*/ig, '\n').split(/\r?\n/).map(x => x.trim()).filter(Boolean).join(' · ') : note;
+    const noteH = `${base ? `<div class="nt1" title="${esc(base)}">${esc(base)}</div>` : ''}${pn ? `<a class="pdl" data-act="trkPend" data-v="${r.id}" title="Xem hồ sơ pending">pending ${pn}hs</a>` : ''}`;
     return `<tr data-act="trkEdit" data-v="${r.id}" class="click"><td class="ctr">${fmtVN(r.receivedDate)}<br><span class="dl ${cls}">${d.closed ? 'Chốt ' : ''}${d.days} ngày</span></td><td title="${esc(r.officialLetter)}"><a class="cvl" data-act="trkCv" data-v="${r.id}" title="Xem hồ sơ trong kho theo Công văn này">${esc(r.officialLetter)}</a></td><td><b>${esc(r.tpa)}</b><br><span class="hsn">${r.caseCount} HS</span></td><td class="ctr"><span class="kb ${kc}" title="Hồ sơ trong kho khớp Công văn: ${money(km.n)} HS · ${money(km.sum)}">Kho ${money(km.n)}/${money(Math.round(r.caseCount || 0))}</span></td><td class="num">${money(r.amount)}</td><td class="ctr">${r.tpc ? '<span class="tpcb">TPC</span>' : ''}</td>
-    <td class="ctr" title="${esc(r.enteredDate)}">${dl(r.enteredDate)}</td><td class="ctr" title="${esc(r.accountingDate)}">${dl(r.accountingDate)}</td><td class="ctr"><span class="bd ${trkStatCls(d.display)}">${esc(d.display)}</span></td><td class="note" title="${esc(r.paymentNote)}">${noteH}</td><td class="ctr"><button class="icon" data-act="trkEdit" data-v="${r.id}" title="Sửa">✎</button></td></tr>`;
+    <td class="ctr" title="${esc(r.enteredDate)}">${dl(r.enteredDate)}</td><td class="ctr" title="${esc(r.accountingDate)}">${dl(r.accountingDate)}</td><td class="ctr"><span class="bd ${trkStatCls(d.display)}">${esc(d.display)}</span></td><td class="note">${noteH}</td><td class="ctr"><button class="icon" data-act="trkEdit" data-v="${r.id}" title="Sửa">✎</button></td></tr>`;
   });
   return `<div class="panel" data-scope="trk"><div class="bar">
   <select class="in" data-change="trkYear">${years.map(y => `<option${y === t.year ? ' selected' : ''}>${y}</option>`).join('')}</select>
