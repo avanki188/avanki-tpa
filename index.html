@@ -30,7 +30,7 @@ main{padding:22px 26px;min-width:0}.top{display:flex;align-items:center;justify-
 .xlh{display:flex;align-items:center;gap:10px;margin:0 0 2px}.xlh .sn{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--pri);color:#fff;font-size:13px;font-weight:800}.xlh .sn.ok{background:#16a34a}
 .xlcol.flash{animation:xlflash 1.2s ease}@keyframes xlflash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 2px var(--pri),0 0 22px var(--glow)}}
 .xlres:empty{display:none}
-.psum{font-size:15px;margin:2px 0}tr.ps-ok td{background:rgba(255,122,26,.22)}tr.ps-ok td:nth-child(2),tr.ps-ok td:nth-child(6),tr.ps-ok td:nth-child(7){color:#ff9a4d;font-weight:800}:root[data-theme=light] tr.ps-ok td{background:#ffe3cc}:root[data-theme=light] tr.ps-ok td:nth-child(2),:root[data-theme=light] tr.ps-ok td:nth-child(6),:root[data-theme=light] tr.ps-ok td:nth-child(7){color:#c2410c}tr.ps-chk td{background:rgba(251,191,36,.16)}tr.dc-lech td{background:rgba(255,122,26,.22)}tr.dc-lech td:nth-child(6){color:#ff9a4d}:root[data-theme=light] tr.dc-lech td{background:#ffe3cc}:root[data-theme=light] tr.dc-lech td:nth-child(6){color:#c2410c}tr.dc-a td,tr.dc-b td{background:rgba(251,191,36,.12)}td.num{text-align:right;white-space:nowrap}.dcok{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#22c55e;color:#fff;font-size:11px;font-weight:900;vertical-align:middle;cursor:help}
+.psum{font-size:15px;margin:2px 0}tr.ps-ok td{background:rgba(255,122,26,.22)}tr.ps-ok td:nth-child(2),tr.ps-ok td:nth-child(6),tr.ps-ok td:nth-child(7){color:#ff9a4d;font-weight:800}:root[data-theme=light] tr.ps-ok td{background:#ffe3cc}:root[data-theme=light] tr.ps-ok td:nth-child(2),:root[data-theme=light] tr.ps-ok td:nth-child(6),:root[data-theme=light] tr.ps-ok td:nth-child(7){color:#c2410c}tr.ps-chk td{background:rgba(251,191,36,.16)}tr.dc-lech td{background:rgba(255,122,26,.22)}tr.dc-lech td:nth-child(6){color:#ff9a4d}:root[data-theme=light] tr.dc-lech td{background:#ffe3cc}:root[data-theme=light] tr.dc-lech td:nth-child(6){color:#c2410c}tr.dc-a td,tr.dc-b td{background:rgba(251,191,36,.12)}td.num{text-align:right;white-space:nowrap}.tw.dc th:nth-child(4),.tw.dc th:nth-child(5),.tw.dc th:nth-child(6){text-align:right}:root[data-theme=dark].hasbg .tw.dc th{background:#0c1538}.dcok{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#22c55e;color:#fff;font-size:11px;font-weight:900;vertical-align:middle;cursor:help}
 .manh{display:flex;align-items:center;gap:8px;margin-bottom:6px}.manbd,.manrs{display:none}.manbox.man .manbd{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;color:#1a1300;background:#fbbf24}.manbox.man .manrs{display:inline-flex;margin-left:auto}
 .prevta{width:100%;min-height:58px;resize:vertical;font-weight:700;line-height:1.45;font-family:inherit}.manbox.man .prevta{border-color:#fbbf24;box-shadow:0 0 0 1px rgba(251,191,36,.35)}
 .two{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:16px;align-items:start}@media(max-width:1000px){.two{grid-template-columns:1fr}}
@@ -981,7 +981,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.19-1';
+const APP_VER = '2026.11.19-2';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -2598,7 +2598,7 @@ function dcTpa(note) {
 }
 const dcV = v => cellText(v);
 ACT.dcGo = async () => {
-  const t = S.tool; t.dc = null; t.dcView = '';
+  const t = S.tool; t.dc = null;
   if (!t.file) return alert('Chọn File cần dò (DPBT) trước nha ní.');
   if (!t.listFile) return alert('Chọn File nguồn (Hồ sơ bồi thường TPA) nha ní.');
   const A = dcHead(await readExcelFile(t.file), DC_A, ['key', 'amt', 'note']);
@@ -2625,7 +2625,7 @@ ACT.dcGo = async () => {
   const rows = [];
   for (const [k, a] of ma) {
     const b = mb.get(k);
-    if (!b) { const o = other.get(k); rows.push({ kind: 'a', no: a.no, name: a.name, a: a.amt, b: '', d: '', note: o ? `Không có ở nguồn trạng thái ${DC_TA} (đang ${o})` : 'Không có trong file nguồn' }); continue; }
+    if (!b) { const o = other.get(k); if (o && o.toUpperCase() === DC_DRAFT) { const dr = drafts.find(x => claimKey(x.no) === k); if (dr) { dr.a = a.amt; if (!dr.name) dr.name = a.name; } continue; } rows.push({ kind: 'a', no: a.no, name: a.name, a: a.amt, b: '', d: '', note: o ? `Không có ở nguồn trạng thái ${DC_TA} (đang ${o})` : 'Không có trong file nguồn' }); continue; }
     const d = Math.round((a.amt - b.amt) * 100) / 100, lech = Math.abs(d) >= 1, dup = b.n > 1 ? ` · nguồn ${b.n} dòng, đã cộng tiền` : '';
     rows.push({ kind: lech ? 'lech' : 'ok', no: a.no, name: a.name || b.name, a: a.amt, b: b.amt, d: lech ? d : 0, note: (lech ? 'Lệch số tiền' : 'Khớp') + dup });
   }
@@ -2646,10 +2646,9 @@ ACT.dcGo = async () => {
       else { row.dcCheck = { at: new Date().toISOString(), n, sum: r.sa }; row.updatedAt = new Date().toISOString(); touch('tracker'); r.trk = { cls: 'res-ok', t: `Đã gắn dấu ✓ cho đợt ${row.officialLetter} (${tpa}) bên Theo dõi HS TPA · ${n} HS · ${money(r.sa)}.` }; }
     }
   }
-  t.dcView = nErr ? 'err' : 'all'; renderBody();
+  renderBody();
   toast(nErr ? `Có ${nErr} lỗi, tải file báo lỗi để kiểm tra` : 'Số tiền khớp hết giữa 2 file', nErr ? 'note' : 'ok');
 };
-ACT.dcView = v => { S.tool.dcView = v; renderBody(); };
 const DC_KIND = { lech: 'Lệch số tiền', ok: 'Khớp', a: 'Thiếu ở nguồn', b: 'Thiếu ở file cần dò' };
 ACT.dcDl = () => {
   const r = S.tool.dc; if (!r) return;
@@ -2661,21 +2660,17 @@ ACT.dcDl = () => {
 };
 function dcResultHTML(r) {
   if (!r) return '';
-  const cnt = k => r.rows.filter(x => x.kind === k).length, nd = r.drafts.length, nl = cnt('lech'), na = cnt('a'), nb = cnt('b'), nErr = nd + nl + na + nb, v = S.tool.dcView || 'all', diff = Math.round((r.sa - r.sb) * 100) / 100;
-  const chip = (k, l, n) => `<button class="btn sm2${v === k ? ' pri' : ''}" data-nc data-act="dcView" data-v="${k}">${l} (${n})</button>`;
-  const mc = x => x === '' ? '' : money(x);
-  let tbl;
-  if (v === 'draft') tbl = dataTable(['STT', 'Số HSBT TPA', 'Số HSBT', 'NĐBH', 'Tổng tiền', 'Trạng thái'], r.drafts.map((x, i) => `<tr class="dc-a"><td class="ctr">${i + 1}</td><td><b>${esc(x.no)}</b></td><td>${esc(x.hsbt)}</td><td>${esc(x.name)}</td><td class="num">${money(x.amt)}</td><td>${esc(x.st)}</td></tr>`), 'Không có hồ sơ DRAFT');
-  else {
-    const list = r.rows.filter(x => v === 'all' || (v === 'err' ? x.kind !== 'ok' : x.kind === v)), MAX = 3000;
-    tbl = dataTable(['STT', 'Số HSBT TPA', 'NĐBH', 'Số tiền DPBT ntệ', 'Tổng tiền', 'Chênh lệch', 'Ghi chú'], list.slice(0, MAX).map((x, i) => `<tr class="dc-${x.kind}"><td class="ctr">${i + 1}</td><td><b>${esc(x.no)}</b></td><td>${esc(x.name)}</td><td class="num">${mc(x.a)}</td><td class="num">${mc(x.b)}</td><td class="num">${x.kind === 'lech' ? `<b>${money(x.d)}</b>` : ''}</td><td>${esc(x.note)}</td></tr>`), 'Không có dòng nào') + (list.length > MAX ? `<p class="mut sm">Đang hiện ${MAX}/${list.length} dòng.</p>` : '');
-  }
+  const err = r.rows.filter(x => x.kind !== 'ok'), cnt = k => err.filter(x => x.kind === k).length, nd = r.drafts.length, nl = cnt('lech'), na = cnt('a'), nb = cnt('b'), nErr = nd + err.length, diff = Math.round((r.sa - r.sb) * 100) / 100;
+  const mc = x => x === '' || x == null ? '' : money(x);
+  const list = r.drafts.map(x => ({ kind: 'draft', no: x.no, name: x.name, a: x.a == null ? '' : x.a, b: x.amt, d: '', note: `Trạng thái ${x.st}${x.hsbt ? ' · ' + x.hsbt : ''}` })).concat(err);
+  const LB = { draft: 'DRAFT', ...DC_KIND };
+  const tbl = nErr ? dataTable(['STT', 'Số HSBT TPA', 'NĐBH', 'Số tiền DPBT ntệ', 'Tổng tiền', 'Chênh lệch', 'Lỗi', 'Ghi chú'], list.map((x, i) => `<tr class="dc-${x.kind === 'draft' ? 'a' : x.kind}"><td class="ctr">${i + 1}</td><td><b>${esc(x.no)}</b></td><td>${esc(x.name)}</td><td class="num">${mc(x.a)}</td><td class="num">${mc(x.b)}</td><td class="num">${x.kind === 'lech' ? `<b>${money(x.d)}</b>` : ''}</td><td><b>${LB[x.kind]}</b></td><td>${esc(x.note)}</td></tr>`), '', 'dc') : '';
   return `<div class="panel"><h3>Kết quả đối chiếu số tiền</h3>
   <p class="psum">${nErr ? `<b style="color:#ff7a1a">${nErr}</b> lỗi${nd ? ` · <b>${nd}</b> DRAFT` : ''}${nl ? ` · <b>${nl}</b> lệch số tiền` : ''}${na ? ` · <b>${na}</b> thiếu ở nguồn` : ''}${nb ? ` · <b>${nb}</b> thiếu ở file cần dò` : ''}` : '<b class="res-ok">Không có lỗi, số tiền khớp hết ✓</b>'}</p>
   ${r.trk ? `<p class="${r.trk.cls}">${esc(r.trk.t)}</p>` : ''}
   <div class="kv"><span>Số HS file cần dò / nguồn (${DC_TA})</span><b>${money(r.na)} / ${money(r.nb)}</b><span>Tổng Số tiền DPBT ntệ</span><b>${money(r.sa)}</b><span>Tổng Tổng tiền (nguồn)</span><b>${money(r.sb)}</b><span>Chênh lệch tổng</span><b class="${diff ? 'res-bad' : 'res-ok'}">${money(diff)}</b></div>
-  <div class="bar" style="margin:10px 0">${chip('err', 'Lỗi lệch / thiếu', nl + na + nb)}${chip('draft', 'DRAFT', nd)}${chip('ok', 'Khớp', cnt('ok'))}${chip('all', 'Tất cả', r.rows.length)}${nErr ? '<button class="btn pri sm2" data-act="dcDl">Tải file báo lỗi</button>' : ''}</div>
-  ${tbl}<p class="mut sm">File cần dò: ${esc(r.fa)} · File nguồn: ${esc(r.fb)}</p></div>`;
+  ${nErr ? `<div class="bar" style="margin:10px 0"><button class="btn pri sm2" data-act="dcDl">Tải file báo lỗi</button></div>${tbl}` : ''}
+  <p class="mut sm">File cần dò: ${esc(r.fa)} · File nguồn: ${esc(r.fb)}</p></div>`;
 }
 function dcFormHTML() {
   return `<div class="panel" data-scope="tool"><div class="grid">${filePick('tool.file', 'File cần dò – DPBT (Số HSBT TPA · Số tiền DPBT ntệ · Ghi chú)')}${filePick('tool.listFile', 'File nguồn – Hồ sơ bồi thường TPA (Trạng thái · Số HSBT TPA · Tổng tiền)')}</div>
@@ -2700,7 +2695,7 @@ RENDER.tool = () => {
 };
 ACT.toolFn = v => {
   const t = S.tool; if (t.fn === v) return; t.fn = v; t.quarter = v === 'quarter'; t.fix = v === 'fix'; t.upd = v === 'upd';
-  t.file = null; t.fixFile = null; t.listFile = null; t.result = null; t.review = null; t.confirmSig = ''; t.cc = null; t.fx = null; t.ps = null; t.psView = 'all'; t.dc = null; t.dcView = ''; renderBody();
+  t.file = null; t.fixFile = null; t.listFile = null; t.result = null; t.review = null; t.confirmSig = ''; t.cc = null; t.fx = null; t.ps = null; t.psView = 'all'; t.dc = null; renderBody();
 };
 function ccResultHTML(r) {
   if (!r) return '';
