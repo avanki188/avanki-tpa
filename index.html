@@ -30,7 +30,7 @@ main{padding:22px 26px;min-width:0}.top{display:flex;align-items:center;justify-
 .xlh{display:flex;align-items:center;gap:10px;margin:0 0 2px}.xlh .sn{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--pri);color:#fff;font-size:13px;font-weight:800}.xlh .sn.ok{background:#16a34a}
 .xlcol.flash{animation:xlflash 1.2s ease}@keyframes xlflash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 2px var(--pri),0 0 22px var(--glow)}}
 .xlres:empty{display:none}
-.psum{font-size:15px;margin:2px 0}tr.ps-ok td{background:rgba(255,122,26,.22)}tr.ps-ok td:nth-child(2),tr.ps-ok td:nth-child(6),tr.ps-ok td:nth-child(7){color:#ff9a4d;font-weight:800}:root[data-theme=light] tr.ps-ok td{background:#ffe3cc}:root[data-theme=light] tr.ps-ok td:nth-child(2),:root[data-theme=light] tr.ps-ok td:nth-child(6),:root[data-theme=light] tr.ps-ok td:nth-child(7){color:#c2410c}tr.ps-chk td{background:rgba(251,191,36,.16)}
+.psum{font-size:15px;margin:2px 0}tr.ps-ok td{background:rgba(255,122,26,.22)}tr.ps-ok td:nth-child(2),tr.ps-ok td:nth-child(6),tr.ps-ok td:nth-child(7){color:#ff9a4d;font-weight:800}:root[data-theme=light] tr.ps-ok td{background:#ffe3cc}:root[data-theme=light] tr.ps-ok td:nth-child(2),:root[data-theme=light] tr.ps-ok td:nth-child(6),:root[data-theme=light] tr.ps-ok td:nth-child(7){color:#c2410c}tr.ps-chk td{background:rgba(251,191,36,.16)}tr.dc-lech td{background:rgba(255,122,26,.22)}tr.dc-lech td:nth-child(6){color:#ff9a4d}:root[data-theme=light] tr.dc-lech td{background:#ffe3cc}:root[data-theme=light] tr.dc-lech td:nth-child(6){color:#c2410c}tr.dc-a td,tr.dc-b td{background:rgba(251,191,36,.12)}td.num{text-align:right;white-space:nowrap}.dcok{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#22c55e;color:#fff;font-size:11px;font-weight:900;vertical-align:middle;cursor:help}
 .manh{display:flex;align-items:center;gap:8px;margin-bottom:6px}.manbd,.manrs{display:none}.manbox.man .manbd{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;color:#1a1300;background:#fbbf24}.manbox.man .manrs{display:inline-flex;margin-left:auto}
 .prevta{width:100%;min-height:58px;resize:vertical;font-weight:700;line-height:1.45;font-family:inherit}.manbox.man .prevta{border-color:#fbbf24;box-shadow:0 0 0 1px rgba(251,191,36,.35)}
 .two{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:16px;align-items:start}@media(max-width:1000px){.two{grid-template-columns:1fr}}
@@ -413,16 +413,18 @@ const XL = (() => {
     const parts = base.split('/').slice(0, -1).concat(target.split('/')), out = [];
     for (const p of parts) { if (p === '..') out.pop(); else if (p && p !== '.') out.push(p); } return out.join('/');
   }
+  /* Bỏ tiền tố namespace của thẻ (<x:sheet>, <x:row>…): file xuất từ hệ thống ghi kiểu này */
+  const noNs = x => x ? x.replace(/<(\/?)[A-Za-z_][\w.-]*:(?=[A-Za-z_])/g, '<$1') : x;
   async function readXlsx(buf) {
-    const z = zipRead(buf), wb = await z.text('xl/workbook.xml'); if (!wb) throw new Error('Không tìm thấy workbook trong file');
-    const rels = (await z.text('xl/_rels/workbook.xml.rels')) || '', relMap = {};
+    const z = zipRead(buf), wb = noNs(await z.text('xl/workbook.xml')); if (!wb) throw new Error('Không tìm thấy workbook trong file');
+    const rels = noNs(await z.text('xl/_rels/workbook.xml.rels')) || '', relMap = {};
     rels.replace(/<Relationship\b([^>]*?)\/?>/g, (_, a) => { const id = /\bId="([^"]*)"/.exec(a), tg = /\bTarget="([^"]*)"/.exec(a); if (id && tg) relMap[id[1]] = tg[1]; });
-    const shared = [], ss = await z.text('xl/sharedStrings.xml');
+    const shared = [], ss = noNs(await z.text('xl/sharedStrings.xml'));
     if (ss) ss.replace(/<si\b[^>]*?(?:\/>|>([\s\S]*?)<\/si>)/g, (_, b) => { shared.push(textOf(b || '')); });
     const sheets = [], re = /<sheet\b([^>]*?)\/?>/g; let m;
     while ((m = re.exec(wb))) {
       const nm = /\bname="([^"]*)"/.exec(m[1]), rid = /\br:id="([^"]*)"/.exec(m[1]); if (!nm || !rid) continue;
-      const xml = await z.text(resolvePath('xl/workbook.xml', relMap[rid[1]] || '')); if (!xml) continue; const rows = [];
+      const xml = noNs(await z.text(resolvePath('xl/workbook.xml', relMap[rid[1]] || ''))); if (!xml) continue; const rows = [];
       xml.replace(/<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g, (_, ra, body) => {
         const rn = /\br="(\d+)"/.exec(ra), rIdx = rn ? +rn[1] - 1 : rows.length, row = rows[rIdx] || (rows[rIdx] = []);
         (body || '').replace(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g, (_, ca, cb) => {
@@ -979,7 +981,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.17-5';
+const APP_VER = '2026.11.19-1';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1285,7 +1287,7 @@ RENDER.trk = () => {
     const km = trkKhoMatch(r.tpa, r.officialLetter), kc = !km.n ? 'none' : (km.n === Math.round(r.caseCount || 0) && Math.abs(km.sum - numAmount(r.amount)) <= 1) ? 'ok' : 'lech';
     const pn = (r.pending || []).length, base = pn ? String(r.paymentNote || '').replace(/\s*(?:·\s*)?pending\s*\d+\s*hs\s*/ig, '\n').split(/\r?\n/).map(x => x.trim()).filter(Boolean).join(' · ') : note;
     const noteH = `${base ? `<div class="nt1" title="${esc(base)}">${esc(base)}</div>` : ''}${pn ? `<a class="pdl" data-act="trkPend" data-v="${r.id}" title="Xem hồ sơ pending">pending ${pn}hs</a>` : trkPendDoneTag(r)}`;
-    return `<tr data-act="trkEdit" data-v="${r.id}" class="click"><td class="ctr">${fmtVN(r.receivedDate)}<br><span class="dl ${cls}">${d.closed ? 'Chốt ' : ''}${d.days} ngày</span></td><td title="${esc(r.officialLetter)}"><a class="cvl" data-act="trkCv" data-v="${r.id}" title="Xem hồ sơ trong kho theo Công văn này">${esc(r.officialLetter)}</a></td><td><b>${esc(r.tpa)}</b><br><span class="hsn">${r.caseCount} HS</span></td><td class="ctr"><span class="kb ${kc}" title="Hồ sơ trong kho khớp Công văn: ${money(km.n)} HS · ${money(km.sum)}">Kho ${money(km.n)}/${money(Math.round(r.caseCount || 0))}</span></td><td class="num">${money(r.amount)}</td><td class="ctr">${r.tpc ? '<span class="tpcb">TPC</span>' : ''}</td>
+    return `<tr data-act="trkEdit" data-v="${r.id}" class="click"><td class="ctr">${fmtVN(r.receivedDate)}<br><span class="dl ${cls}">${d.closed ? 'Chốt ' : ''}${d.days} ngày</span></td><td title="${esc(r.officialLetter)}"><a class="cvl" data-act="trkCv" data-v="${r.id}" title="Xem hồ sơ trong kho theo Công văn này">${esc(r.officialLetter)}</a></td><td><b>${esc(r.tpa)}</b><br><span class="hsn">${r.caseCount} HS</span>${r.dcCheck ? ` <span class="dcok" title="Đã đối chiếu số tiền ${esc(new Date(r.dcCheck.at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }))} ${esc(new Date(r.dcCheck.at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }))} · ${r.dcCheck.n} HS · ${money(r.dcCheck.sum)}">✓</span>` : ''}</td><td class="ctr"><span class="kb ${kc}" title="Hồ sơ trong kho khớp Công văn: ${money(km.n)} HS · ${money(km.sum)}">Kho ${money(km.n)}/${money(Math.round(r.caseCount || 0))}</span></td><td class="num">${money(r.amount)}</td><td class="ctr">${r.tpc ? '<span class="tpcb">TPC</span>' : ''}</td>
     <td class="ctr" title="${esc(r.enteredDate)}">${dl(r.enteredDate)}</td><td class="ctr" title="${esc(r.accountingDate)}">${dl(r.accountingDate)}</td><td class="ctr"><span class="bd ${trkStatCls(d.display)}">${esc(d.display)}</span></td><td class="note">${noteH}</td><td class="ctr"><button class="icon" data-act="trkEdit" data-v="${r.id}" title="Sửa">✎</button></td></tr>`;
   });
   return `<div class="panel" data-scope="trk"><div class="bar">
@@ -1420,7 +1422,7 @@ ACT.trkSave = async () => {
   const dates = {};
   for (const [k, l, lb] of [['enteredDate', 'entL', 'Ngày nhập HS'], ['accountingDate', 'accL', 'Ngày chuyển kế toán']]) { const r = trkDateLines((e[l] || []).join('\n'), trkYearOf(rd)); if (r.bad.length) return alert(`${lb}: "${r.bad[0]}" không phải ngày hợp lệ, ví dụ 11/11/2026.`); dates[k] = r.ok.join('\n'); }
   if (!String(e.officialLetter || '').trim() && !await confirmBox({ title: 'Chưa nhập Công văn, vẫn lưu?', msg: 'Đợt hồ sơ này chưa có Công văn.', okText: 'Vẫn lưu', cancelText: 'Quay lại', danger: false })) return;
-  const row = cleanTracker({ id: e.id || uid(), receivedDate: rd, tpa: e.tpa, officialLetter: String(e.officialLetter || '').trim(), amount: e.amount, caseCount: e.caseCount, status: e.status, tpc: e.tpc, enteredDate: dates.enteredDate, accountingDate: dates.accountingDate, paymentNote: trkPendNote(e.paymentNote, trkKeepPend(e)), pending: trkKeepPend(e), pendHist: trkKeepHist(e), createdAt: e.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
+  const row = cleanTracker({ id: e.id || uid(), receivedDate: rd, tpa: e.tpa, officialLetter: String(e.officialLetter || '').trim(), amount: e.amount, caseCount: e.caseCount, status: e.status, tpc: e.tpc, enteredDate: dates.enteredDate, accountingDate: dates.accountingDate, paymentNote: trkPendNote(e.paymentNote, trkKeepPend(e)), pending: trkKeepPend(e), pendHist: trkKeepHist(e), ...(e.dcCheck ? { dcCheck: e.dcCheck } : {}), createdAt: e.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
   if (!e.id) { const k = trkDupKey(row); if (DB.tracker.rows.some(r => trkDupKey(r) === k)) return alert('Đợt hồ sơ này đã có trong danh sách.'); DB.tracker.rows.push(row); }
   else { const i = DB.tracker.rows.findIndex(r => r.id === e.id); if (i >= 0) DB.tracker.rows[i] = row; }
   touch('tracker'); closeModal(); renderBody();
@@ -2566,11 +2568,127 @@ function psFormHTML() {
   <p class="mut sm" style="margin-top:10px">Đã phát sinh = trùng <b>Tên NĐBH + CCCD</b> với dòng có Tình trạng <b>"Đã giải quyết bồi thường"</b> ở file nguồn. File cần dò có dòng thiếu CCCD thì app báo lỗi, không chạy. Kết quả hiện ngay bên dưới, không xuất file, không lưu vào kho.</p></div>
   ${psResultHTML(t.ps)}`;
 }
-const TOOL_FN = [['cccd', 'Bổ sung CCCD'], ['upd', 'Update dữ liệu thiếu'], ['quarter', 'DPBT quý'], ['fix', 'Fix lỗi'], ['ps', 'Kiểm tra phát sinh']];
+/* ===================== Đối chiếu số tiền (tab Công cụ): File cần dò (DPBT FULL) ↔ File nguồn (Hồ sơ bồi thường TPA) =====================
+   Nguồn: Trạng thái TRANSFER_ACCOUNTING → gom theo Số HSBT TPA, trùng thì cộng Tổng tiền; DRAFT → báo lỗi.
+   So Số tiền DPBT ntệ ↔ Tổng tiền, lệch từ 1 đồng là báo. Không lỗi + số HS = Số lượng HS của đợt → gắn ✓ bên Theo dõi HS TPA. */
+const DC_A = { key: ['SOHSBTTPA'], amt: ['SOTIENDPBTNTE'], note: ['GHICHU'], name: ['NGUOIDUOCBAOHIEM', 'TENNDBH', 'NDBH'] };
+const DC_B = { st: ['TRANGTHAI'], key: ['SOHSBTTPA'], amt: ['TONGTIEN'], hsbt: ['SOHSBT'], name: ['NDBH', 'NGUOIDUOCBAOHIEM', 'TENNDBH'] };
+const DC_LB = { key: 'Số HSBT TPA', amt: 'Số tiền DPBT ntệ', note: 'Ghi chú', st: 'Trạng thái' };
+const DC_TA = 'TRANSFER_ACCOUNTING', DC_DRAFT = 'DRAFT';
+/* Tìm dòng tiêu đề (30 dòng đầu, mọi sheet) có đủ các cột bắt buộc */
+function dcHead(sheets, al, need) {
+  let best = null;
+  for (const sh of sheets) for (let i = 0; i < Math.min(30, sh.rows.length); i++) {
+    const h = (sh.rows[i] || []).map(x => hk(x == null ? '' : String(x))), col = {};
+    for (const k in al) { for (const a of al[k]) { const j = h.indexOf(a); if (j >= 0) { col[k] = j; break; } } }
+    if (need.every(k => col[k] != null)) return { rows: sh.rows.slice(i + 1), col };
+    const n = need.filter(k => col[k] != null).length; if (n && (!best || n > best.n)) best = { n, miss: need.filter(k => col[k] == null) };
+  }
+  return { miss: best ? best.miss : need };
+}
+/* Nhận TPA theo mẫu Ghi chú lúc Chuyển đổi DPBT */
+function dcTpa(note) {
+  const n = noAccent(note).replace(/\s*-\s*TPC$/, '').trim(), q = /^DPBT\s+(FHVI|INS|PPY|FPTIS)\b/.exec(n);
+  if (q) return q[1];
+  if (/PJICO/.test(n)) return 'INS';
+  if (/THANG\s*\d+.*DOT\s*\d+/.test(n)) return 'PPY';
+  if (/^GD\b/.test(n) && fhviDates(n.replace(/^GD\s*/, '')).length) return 'FHVI';
+  if (/^CV\b/.test(n)) return 'FPTIS';
+  return '';
+}
+const dcV = v => cellText(v);
+ACT.dcGo = async () => {
+  const t = S.tool; t.dc = null; t.dcView = '';
+  if (!t.file) return alert('Chọn File cần dò (DPBT) trước nha ní.');
+  if (!t.listFile) return alert('Chọn File nguồn (Hồ sơ bồi thường TPA) nha ní.');
+  const A = dcHead(await readExcelFile(t.file), DC_A, ['key', 'amt', 'note']);
+  if (!A.rows) return alert(`File cần dò chưa thấy cột: ${A.miss.map(k => DC_LB[k]).join(', ')}. Ní kiểm tra lại có phải file DPBT xuất từ Chuyển đổi DPBT không nha.`);
+  const B = dcHead(await readExcelFile(t.listFile), DC_B, ['st', 'key', 'amt']);
+  if (!B.rows) return alert(`File nguồn chưa thấy cột: ${B.miss.map(k => k === 'amt' ? 'Tổng tiền' : DC_LB[k]).join(', ')}. Ní kiểm tra lại file Hồ sơ bồi thường TPA nha.`);
+  /* File cần dò */
+  const ma = new Map(), notes = new Set();
+  for (const r of A.rows) {
+    if (!r) continue; const raw = dcV(r[A.col.key]), k = claimKey(raw); if (!k) continue;
+    const nt = dcV(r[A.col.note]); if (nt) notes.add(nt);
+    const g = ma.get(k) || ma.set(k, { no: raw, amt: 0, name: A.col.name != null ? dcV(r[A.col.name]) : '' }).get(k);
+    g.amt = Math.round((g.amt + numAmount(r[A.col.amt])) * 100) / 100;
+  }
+  if (!ma.size) return alert('File cần dò chưa có hồ sơ nào.');
+  /* File nguồn */
+  const mb = new Map(), drafts = [], other = new Map();
+  for (const r of B.rows) {
+    if (!r) continue; const raw = dcV(r[B.col.key]), k = claimKey(raw), st = dcV(r[B.col.st]).toUpperCase(); if (!k) continue;
+    const name = B.col.name != null ? dcV(r[B.col.name]) : '', amt = numAmount(r[B.col.amt]);
+    if (st === DC_TA) { const g = mb.get(k) || mb.set(k, { no: raw, amt: 0, n: 0, name }).get(k); g.amt = Math.round((g.amt + amt) * 100) / 100; g.n++; }
+    else { if (st === DC_DRAFT) drafts.push({ no: raw, hsbt: B.col.hsbt != null ? dcV(r[B.col.hsbt]) : '', name, amt, st: dcV(r[B.col.st]) }); if (!other.has(k)) other.set(k, dcV(r[B.col.st]) || '(trống)'); }
+  }
+  const rows = [];
+  for (const [k, a] of ma) {
+    const b = mb.get(k);
+    if (!b) { const o = other.get(k); rows.push({ kind: 'a', no: a.no, name: a.name, a: a.amt, b: '', d: '', note: o ? `Không có ở nguồn trạng thái ${DC_TA} (đang ${o})` : 'Không có trong file nguồn' }); continue; }
+    const d = Math.round((a.amt - b.amt) * 100) / 100, lech = Math.abs(d) >= 1, dup = b.n > 1 ? ` · nguồn ${b.n} dòng, đã cộng tiền` : '';
+    rows.push({ kind: lech ? 'lech' : 'ok', no: a.no, name: a.name || b.name, a: a.amt, b: b.amt, d: lech ? d : 0, note: (lech ? 'Lệch số tiền' : 'Khớp') + dup });
+  }
+  for (const [k, b] of mb) if (!ma.has(k)) rows.push({ kind: 'b', no: b.no, name: b.name, a: '', b: b.amt, d: '', note: 'Có ở nguồn, không có ở file cần dò' + (b.n > 1 ? ` · nguồn ${b.n} dòng, đã cộng tiền` : '') });
+  const sum = m => Math.round([...m.values()].reduce((s, x) => s + x.amt, 0) * 100) / 100;
+  const r = t.dc = { rows, drafts, na: ma.size, nb: mb.size, sa: sum(ma), sb: sum(mb), fa: t.file.name, fb: t.listFile.name, trk: null };
+  const nErr = drafts.length + rows.filter(x => x.kind !== 'ok').length;
+  /* Gắn ✓ bên Theo dõi HS TPA */
+  if (nErr) r.trk = { cls: 'res-bad', t: 'Còn lỗi nên chưa gắn dấu ✓ bên Theo dõi HS TPA.' };
+  else if (notes.size !== 1) r.trk = { cls: 'res-bad', t: notes.size ? `File cần dò có ${notes.size} Ghi chú khác nhau (${[...notes].slice(0, 3).join('; ')}), chưa gắn dấu ✓ được.` : 'File cần dò chưa có Ghi chú nên không dò được đợt, chưa gắn dấu ✓.' };
+  else {
+    const note = [...notes][0], tpa = dcTpa(note);
+    if (!tpa) r.trk = { cls: 'res-bad', t: `Ghi chú "${note}" không khớp mẫu TPA nào, chưa gắn dấu ✓.` };
+    else {
+      const m = fxMatch(tpa, note), row = m.row, n = rows.length;
+      if (!row) r.trk = { cls: 'res-bad', t: m.err + ' Chưa gắn dấu ✓.' };
+      else if (Math.round(row.caseCount || 0) !== n) r.trk = { cls: 'res-bad', t: `Đợt ${row.officialLetter} (${tpa}) ghi ${row.caseCount} HS, đối chiếu khớp ${n} HS, lệch ${Math.abs(n - Math.round(row.caseCount || 0))} HS. Chưa gắn dấu ✓.` };
+      else { row.dcCheck = { at: new Date().toISOString(), n, sum: r.sa }; row.updatedAt = new Date().toISOString(); touch('tracker'); r.trk = { cls: 'res-ok', t: `Đã gắn dấu ✓ cho đợt ${row.officialLetter} (${tpa}) bên Theo dõi HS TPA · ${n} HS · ${money(r.sa)}.` }; }
+    }
+  }
+  t.dcView = nErr ? 'err' : 'all'; renderBody();
+  toast(nErr ? `Có ${nErr} lỗi, tải file báo lỗi để kiểm tra` : 'Số tiền khớp hết giữa 2 file', nErr ? 'note' : 'ok');
+};
+ACT.dcView = v => { S.tool.dcView = v; renderBody(); };
+const DC_KIND = { lech: 'Lệch số tiền', ok: 'Khớp', a: 'Thiếu ở nguồn', b: 'Thiếu ở file cần dò' };
+ACT.dcDl = () => {
+  const r = S.tool.dc; if (!r) return;
+  const m = v => v === '' ? '' : { v, s: { fmt: '#,##0' } }, err = r.rows.filter(x => x.kind !== 'ok'), sheets = [];
+  if (r.drafts.length) sheets.push(simpleSheet('Lỗi DRAFT', ['STT', 'Số HSBT TPA', 'Số HSBT', 'NĐBH', 'Tổng tiền', 'Trạng thái'], r.drafts.map((x, i) => [i + 1, x.no, x.hsbt, x.name, m(x.amt), x.st])));
+  if (err.length) sheets.push(simpleSheet('Lệch - thiếu', ['STT', 'Số HSBT TPA', 'NĐBH', 'Số tiền DPBT ntệ', 'Tổng tiền', 'Chênh lệch', 'Lỗi', 'Ghi chú'], err.map((x, i) => [i + 1, x.no, x.name, m(x.a), m(x.b), x.d === '' ? '' : { v: x.d, s: { fmt: '#,##0', b: true, color: 'C2410C' } }, DC_KIND[x.kind], x.note])));
+  if (!sheets.length) return toast('Không có lỗi để xuất file');
+  dlXlsx(sheets, `LOI DOI CHIEU SO TIEN - ${safeFilePart(r.fa.replace(/\.\w+$/, ''), 'DPBT')}.xlsx`);
+};
+function dcResultHTML(r) {
+  if (!r) return '';
+  const cnt = k => r.rows.filter(x => x.kind === k).length, nd = r.drafts.length, nl = cnt('lech'), na = cnt('a'), nb = cnt('b'), nErr = nd + nl + na + nb, v = S.tool.dcView || 'all', diff = Math.round((r.sa - r.sb) * 100) / 100;
+  const chip = (k, l, n) => `<button class="btn sm2${v === k ? ' pri' : ''}" data-nc data-act="dcView" data-v="${k}">${l} (${n})</button>`;
+  const mc = x => x === '' ? '' : money(x);
+  let tbl;
+  if (v === 'draft') tbl = dataTable(['STT', 'Số HSBT TPA', 'Số HSBT', 'NĐBH', 'Tổng tiền', 'Trạng thái'], r.drafts.map((x, i) => `<tr class="dc-a"><td class="ctr">${i + 1}</td><td><b>${esc(x.no)}</b></td><td>${esc(x.hsbt)}</td><td>${esc(x.name)}</td><td class="num">${money(x.amt)}</td><td>${esc(x.st)}</td></tr>`), 'Không có hồ sơ DRAFT');
+  else {
+    const list = r.rows.filter(x => v === 'all' || (v === 'err' ? x.kind !== 'ok' : x.kind === v)), MAX = 3000;
+    tbl = dataTable(['STT', 'Số HSBT TPA', 'NĐBH', 'Số tiền DPBT ntệ', 'Tổng tiền', 'Chênh lệch', 'Ghi chú'], list.slice(0, MAX).map((x, i) => `<tr class="dc-${x.kind}"><td class="ctr">${i + 1}</td><td><b>${esc(x.no)}</b></td><td>${esc(x.name)}</td><td class="num">${mc(x.a)}</td><td class="num">${mc(x.b)}</td><td class="num">${x.kind === 'lech' ? `<b>${money(x.d)}</b>` : ''}</td><td>${esc(x.note)}</td></tr>`), 'Không có dòng nào') + (list.length > MAX ? `<p class="mut sm">Đang hiện ${MAX}/${list.length} dòng.</p>` : '');
+  }
+  return `<div class="panel"><h3>Kết quả đối chiếu số tiền</h3>
+  <p class="psum">${nErr ? `<b style="color:#ff7a1a">${nErr}</b> lỗi${nd ? ` · <b>${nd}</b> DRAFT` : ''}${nl ? ` · <b>${nl}</b> lệch số tiền` : ''}${na ? ` · <b>${na}</b> thiếu ở nguồn` : ''}${nb ? ` · <b>${nb}</b> thiếu ở file cần dò` : ''}` : '<b class="res-ok">Không có lỗi, số tiền khớp hết ✓</b>'}</p>
+  ${r.trk ? `<p class="${r.trk.cls}">${esc(r.trk.t)}</p>` : ''}
+  <div class="kv"><span>Số HS file cần dò / nguồn (${DC_TA})</span><b>${money(r.na)} / ${money(r.nb)}</b><span>Tổng Số tiền DPBT ntệ</span><b>${money(r.sa)}</b><span>Tổng Tổng tiền (nguồn)</span><b>${money(r.sb)}</b><span>Chênh lệch tổng</span><b class="${diff ? 'res-bad' : 'res-ok'}">${money(diff)}</b></div>
+  <div class="bar" style="margin:10px 0">${chip('err', 'Lỗi lệch / thiếu', nl + na + nb)}${chip('draft', 'DRAFT', nd)}${chip('ok', 'Khớp', cnt('ok'))}${chip('all', 'Tất cả', r.rows.length)}${nErr ? '<button class="btn pri sm2" data-act="dcDl">Tải file báo lỗi</button>' : ''}</div>
+  ${tbl}<p class="mut sm">File cần dò: ${esc(r.fa)} · File nguồn: ${esc(r.fb)}</p></div>`;
+}
+function dcFormHTML() {
+  return `<div class="panel" data-scope="tool"><div class="grid">${filePick('tool.file', 'File cần dò – DPBT (Số HSBT TPA · Số tiền DPBT ntệ · Ghi chú)')}${filePick('tool.listFile', 'File nguồn – Hồ sơ bồi thường TPA (Trạng thái · Số HSBT TPA · Tổng tiền)')}</div>
+  <div class="act"><button class="btn c-teal" data-nc data-enter-btn data-act="dcGo">Đối chiếu</button></div>
+  <p class="mut sm" style="margin-top:10px">File nguồn: dòng <b>${DC_TA}</b> gom theo <b>Số HSBT TPA</b>, trùng thì <b>cộng Tổng tiền</b>; dòng <b>${DC_DRAFT}</b> báo lỗi. So <b>Số tiền DPBT ntệ ↔ Tổng tiền</b>, lệch từ 1 đồng là báo. Có lỗi thì tải file báo lỗi (DRAFT + lệch/thiếu). Không lỗi và số HS bằng <b>Số lượng HS</b> của đợt (dò theo Ghi chú) thì gắn dấu <b>✓</b> bên Theo dõi HS TPA.</p></div>
+  ${dcResultHTML(S.tool.dc)}`;
+}
+const TOOL_FN = [['cccd', 'Bổ sung CCCD'], ['upd', 'Update dữ liệu thiếu'], ['quarter', 'DPBT quý'], ['fix', 'Fix lỗi'], ['ps', 'Kiểm tra phát sinh'], ['dc', 'Đối chiếu số tiền']];
 RENDER.tool = () => {
   const t = S.tool, seg = `<div class="bar" style="margin-bottom:12px">${TOOL_FN.map(([k, l]) => `<button class="btn${t.fn === k ? ' pri' : ''}" data-nc data-act="toolFn" data-v="${k}">${l}</button>`).join('')}</div>`;
   if (t.fn === 'fix') return seg + fxFormHTML();
   if (t.fn === 'ps') return seg + psFormHTML();
+  if (t.fn === 'dc') return seg + dcFormHTML();
   if (t.fn !== 'cccd') return seg + convFormHTML('tool');
   return seg + `<div class="two"><div><div class="panel" data-scope="tool"><div class="grid">
   ${fld('TPA/Profile', `<select class="in" data-k="tool.profile" data-r="1">${optHTML(TPAS, t.profile, 'Chọn TPA/Profile')}</select>`)}</div>
@@ -2582,7 +2700,7 @@ RENDER.tool = () => {
 };
 ACT.toolFn = v => {
   const t = S.tool; if (t.fn === v) return; t.fn = v; t.quarter = v === 'quarter'; t.fix = v === 'fix'; t.upd = v === 'upd';
-  t.file = null; t.fixFile = null; t.listFile = null; t.result = null; t.review = null; t.confirmSig = ''; t.cc = null; t.fx = null; t.ps = null; t.psView = 'all'; renderBody();
+  t.file = null; t.fixFile = null; t.listFile = null; t.result = null; t.review = null; t.confirmSig = ''; t.cc = null; t.fx = null; t.ps = null; t.psView = 'all'; t.dc = null; t.dcView = ''; renderBody();
 };
 function ccResultHTML(r) {
   if (!r) return '';
