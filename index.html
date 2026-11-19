@@ -981,7 +981,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.19-3';
+const APP_VER = '2026.11.19-4';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -2471,7 +2471,17 @@ ACT.fixGo = async () => {
   });
   const base = safeFilePart(t.file.name.replace(/\.\w+$/, ''), 'DPBT'), files = {};
   files.fix = { name: `${base} - FIX LOI.xlsx`, u8: XL.write([{ name: fsh.name || 'DPBT TPA', rows: [head.map(h => ({ v: h == null ? '' : h, s: HEAD_BLUE })), ...out] }]) };
-  if (E.rest.length) files.rest = { name: `LOI CON LAI - ${base}.xlsx`, u8: XL.write([{ name: 'Lỗi còn lại', rows: [...(E.head ? [E.head.map(h => ({ v: h == null ? '' : h, s: HEAD_BLUE }))] : []), ...E.rest] }]) };
+  if (E.rest.length) {
+    /* File lỗi còn lại chép từ file báo lỗi: cột Ngày đổi số ngày → ngày; số lưu dạng chữ "15150137.000000000000000" → số thật */
+    const eh = E.head || head, eDate = eh.map(h => /NGAY/.test(noAccent(h == null ? '' : String(h))));
+    const fixCell = (v, j) => {
+      if (eDate[j]) { const n = typeof v === 'number' ? v : /^\d{5}(\.0+)?$/.test(String(v == null ? '' : v).trim()) ? Number(v) : NaN; if (n > 20000 && n < 80000) return { v: serialToISO(Math.floor(n)), t: 'd' }; }
+      if (typeof v === 'string' && /^-?\d+\.\d{6,}$/.test(v.trim())) return Number(v.trim());
+      return v == null ? '' : v;
+    };
+    const rest = E.rest.map(r => (r || []).map(fixCell));
+    files.rest = { name: `LOI CON LAI - ${base}.xlsx`, u8: XL.write([{ name: 'Lỗi còn lại', rows: [...(E.head ? [E.head.map(h => ({ v: h == null ? '' : h, s: HEAD_BLUE }))] : []), ...rest] }]) };
+  }
   const msgs = [{ t: `Đã tạo file Fix lỗi gồm ${out.length} hồ sơ ${t.profile}: ${nA} hồ sơ thêm A (lỗi 2 số đơn BH / 2 đơn vị), ${nP} hồ sơ lỗi POLICY (tô đỏ Số HS).`, cls: 'res-ok' }];
   if (E.rest.length) msgs.push({ t: `File báo lỗi còn ${E.rest.length} dòng lỗi khác, đã tách ra file lỗi còn lại.`, cls: 'warn2' });
   msgs.push({ t: 'Fix lỗi không lưu vào kho hồ sơ.' });
