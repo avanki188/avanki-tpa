@@ -981,7 +981,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.19-2';
+const APP_VER = '2026.11.19-3';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -2899,10 +2899,9 @@ RENDER.dntt = () => {
   ${filePick('dn.file', 'File Bảng kê')}${fld('Tên file Word (để trống sẽ tự lấy từ tên BK)', inp('dn.outName'), 'full')}</div>
   <div class="bar" style="margin:12px 0">${chk('dn.tpc', 'TPC', true)}</div>
   <div class="box"><div class="mut sm">Nội dung thanh toán:</div><div class="prev" id="pvDn">${esc(dnContent(d, true))}</div>
-  <div class="mut sm">Người thụ hưởng:</div><div class="prev">${esc(pay.name)}</div><div class="mut sm">STK / Ngân hàng:</div><div class="prev">${esc(pay.account)} / ${esc(pay.bank)}</div>
   ${r && r.total ? `<div class="mut sm">Số tiền:</div><div class="prev">${money(r.total)} đồng</div><div class="mut sm">Bằng chữ:</div><div class="prev">${esc(moneyWords(r.total))}</div>` : ''}</div>
   <div class="act"><button class="btn ok" data-enter-btn data-act="dnGo">Tạo Giấy ĐNTT</button> ${r && r.u8 ? '<button class="btn pri" data-act="dnDl">Tải file Word</button>' : ''}</div></div>
-  <div>${r ? `<div class="panel"><h3>Kết quả</h3>${r.msgs.map(m => `<p class="${m.cls || ''}">${esc(m.t)}</p>`).join('')}</div>` : ''}<div class="panel"><p class="mut sm">Người thụ hưởng / STK / Ngân hàng lấy từ <b>Cài đặt</b> (sửa được). Ngày văn bản là ngày hôm nay. Số tiền lấy từ dòng TỔNG CỘNG của bảng kê.</p></div></div></div>`;
+  <div>${r ? `<div class="panel"><h3>Kết quả</h3>${r.msgs.map(m => `<p class="${m.cls || ''}">${esc(m.t)}</p>`).join('')}</div>` : ''}<div class="panel"><p class="mut sm">Thông tin người thụ hưởng lấy từ <b>Cài đặt</b> (sửa được). Ngày văn bản là ngày hôm nay. Số tiền lấy từ dòng TỔNG CỘNG của bảng kê.</p></div></div></div>`;
 };
 ACT.dnDl = () => { const r = S.dn.result; if (r && r.u8) download(r.u8, r.name, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'); };
 function bkTotal(rows) {
@@ -2984,6 +2983,7 @@ ACT.dnGo = async () => {
   const contentTpl = dnContent(d); if (contentTpl == null) return alert('Nhập đủ nội dung thanh toán theo TPA đã chọn nha ní.');
   if (d.contentMan != null && !String(d.contentMan).trim()) return alert('Nội dung thanh toán đang trống nha ní.');
   const content = d.contentMan != null ? String(d.contentMan).trim() : contentTpl;
+  { const py = dnPay(d.profile), miss = [['name', 'Người thụ hưởng'], ['account', 'STK'], ['bank', 'Ngân hàng']].filter(([k]) => !String(py[k] || '').trim()).map(x => x[1]); if (miss.length) return alert(`Cài đặt của ${d.profile} còn thiếu ${miss.join(', ')}. Ní vào Cài đặt bổ sung rồi tạo Giấy ĐNTT lại nha.`); }
   if (!d.file) return alert('Chọn file Bảng kê trước nha ní.');
   const sh = (await readExcelFile(d.file))[0]; if (!sh) return fail('File bảng kê không có sheet nào.');
   const t = bkTotal(sh.rows); if (t.err) return fail(t.err);
@@ -3042,12 +3042,11 @@ function xlBkCol(done) {
   <div class="act"><button class="btn ok" data-enter-btn data-act="bkGo">Tạo bảng kê</button>${r && r.u8 ? '<button class="btn pri" data-act="bkDl">Tải bảng kê</button>' : ''}</div></div>`;
 }
 function xlDnCol(done) {
-  const d = S.dn, r = d.result, pay = dnPay(d.profile);
+  const d = S.dn, r = d.result;
   return `<div class="panel xlcol" id="xc-dntt" data-scope="dn">${xlHead(3, 'Giấy ĐNTT', done)}
   <div class="grid">${filePick('dn.file', 'File Bảng kê')}${fld('Tên file Word (để trống sẽ tự lấy từ tên BK)', inp('dn.outName'), 'full')}</div>
   ${manBox('Nội dung thanh toán', 'dn')}
-  <div class="box"><div class="mut sm">Người thụ hưởng:</div><div class="prev">${esc(pay.name) || '—'}</div><div class="mut sm">STK / Ngân hàng:</div><div class="prev">${pay.account ? esc(pay.account) + ' / ' + esc(pay.bank) : '—'}</div>
-  ${r && r.total ? `<div class="mut sm">Số tiền:</div><div class="prev">${money(r.total)} đồng</div><div class="mut sm">Bằng chữ:</div><div class="prev">${esc(moneyWords(r.total))}</div>` : ''}</div>
+  ${r && r.total ? `<div class="box"><div class="mut sm">Số tiền:</div><div class="prev">${money(r.total)} đồng</div><div class="mut sm">Bằng chữ:</div><div class="prev">${esc(moneyWords(r.total))}</div></div>` : ''}
   <div class="act"><button class="btn ok" data-enter-btn data-act="dnGo">Tạo Giấy ĐNTT</button>${r && r.u8 ? '<button class="btn pri" data-act="dnDl">Tải file Word</button>' : ''}</div></div>`;
 }
 function xlResult() {
@@ -3067,7 +3066,7 @@ ACT.xlInfo = () => modal(`<h3>Cách hoạt động – Xử lý DPBT</h3>
   <p><b>Thông tin chung</b>: TPA, TPC, Giai đoạn / Số CV / Năm / Tháng / Đợt nhập một lần, dùng chung cho cả 3 bước. PPY nhập Số CV, Năm, Tháng, Đợt: Ghi chú DPBT <b>GD 645-2026 THANG 10 DOT 3</b>, Tờ trình <b>THÁNG 10/2026 - ĐỢT 3 - CV 645</b>, ĐNTT <b>PJICO hoàn quỹ bồi thường tháng 10/2026 – HQ/PJICO/645-2026</b>. Riêng Số CV DPBT của FPTIS nằm trong cột bước 1.</p>
   <p><b>Bước 1 – Chuyển đổi DPBT</b>: tra theo <b>Số đơn BH ↔ Số HĐ</b> trong DATA: <b>Đơn vị = Mã đơn vị · Phòng ban = Mã đơn vị bỏ số 1 đầu · Đối tượng bảo hiểm = Tên HĐ · Khách hàng = Mã KH</b>. Nếu <b class="warn">Ngày tổn thất nằm ngoài Hiệu lực</b> của Số HĐ, app dừng tạo FULL và xuất Excel lỗi để kiểm tra. FULL không có cột STT.</p>
   <p><b>Bước 2 – Lập bảng kê</b>: chọn file nguồn DPBT (thường là file FULL vừa tải), app lập bảng kê theo mẫu và tự liên kết Theo dõi HS TPA.</p>
-  <p><b>Bước 3 – Giấy ĐNTT</b>: Người thụ hưởng / STK / Ngân hàng lấy từ <b>Cài đặt</b> (sửa được). Ngày văn bản là ngày hôm nay. Số tiền lấy từ dòng TỔNG CỘNG của bảng kê.</p>
+  <p><b>Bước 3 – Giấy ĐNTT</b>: Thông tin người thụ hưởng lấy từ <b>Cài đặt</b> (sửa được). Ngày văn bản là ngày hôm nay. Số tiền lấy từ dòng TỔNG CỘNG của bảng kê.</p>
   <p class="mut sm">Khung Kết quả bên dưới chỉ hiện kết quả của bước vừa chạy. Nút tải file chính của mỗi bước luôn nằm trong cột của bước đó.</p>
   <div class="act"><span class="sp"></span><button class="btn" data-act="close">Đóng</button></div>`);
 
