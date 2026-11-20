@@ -981,7 +981,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.19-4';
+const APP_VER = '2026.11.20-1';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1415,12 +1415,24 @@ const trkWhy = r => r.pending && r.pending.length ? `Đợt còn ${r.pending.len
 const trkKeepPend = e => { const o = e.id ? DB.tracker.rows.find(r => r.id === e.id) : null, L = (o && o.pending) || e.pending || []; return L.length ? [...L] : undefined; };
 const trkPendNote = (note, L) => { const base = String(note || '').replace(/\s*(?:·\s*)?pending\s*\d+\s*hs\s*/ig, '\n').split(/\r?\n/).map(x => x.trim()).filter(Boolean).join('\n'); return L && L.length ? (base ? base + '\n' : '') + `pending ${L.length}hs` : String(note || ''); };
 const trkKeepHist = e => { const o = e.id ? DB.tracker.rows.find(r => r.id === e.id) : null, L = (o && o.pendHist) || e.pendHist || []; return L.length ? L.map(h => ({ date: h.date, list: [...h.list] })) : undefined; };
+/* Đoán TPA theo mẫu Công văn (dùng để cảnh báo chọn nhầm TPA) */
+function cvTpa(cv) {
+  const n = noAccent(cv).toUpperCase();
+  if (!n.trim()) return '';
+  if (/PJICO/.test(n)) return 'INS';
+  if (/FPT/.test(n)) return 'FPTIS';
+  if (/(?<!\d)\d{1,2}\.\d{1,2}(?:\.\d{2,4})?\s*[-–~]\s*\d{1,2}\.\d{1,2}(?!\d)/.test(n)) return 'FHVI';
+  if (/(?<!\d)\d{2,6}\s*-\s*20\d{2}(?!\d)/.test(n)) return 'PPY';
+  return '';
+}
+const cvTpaWarn = (cv, tpa) => { const g = cvTpa(cv); return g && tpa && g !== tpa ? g : ''; };
 ACT.trkSave = async () => {
   const e = S.trk.edit, rd = parseDateInput(e.receivedDate);
   if (!rd || !e.tpa) return alert('Ngày nhận và TPA là bắt buộc.');
   if (e.tpa === 'FHVI' && fhviDates(e.officialLetter).length) { e.officialLetter = fhviNorm(e.officialLetter, true); const er = fhviErr(e.officialLetter, 'Công văn FHVI'); if (er) return alert(er); }
   const dates = {};
   for (const [k, l, lb] of [['enteredDate', 'entL', 'Ngày nhập HS'], ['accountingDate', 'accL', 'Ngày chuyển kế toán']]) { const r = trkDateLines((e[l] || []).join('\n'), trkYearOf(rd)); if (r.bad.length) return alert(`${lb}: "${r.bad[0]}" không phải ngày hợp lệ, ví dụ 11/11/2026.`); dates[k] = r.ok.join('\n'); }
+  { const g = cvTpaWarn(e.officialLetter, e.tpa); if (g && !await confirmBox({ title: 'Công văn không đúng mẫu TPA?', msg: `Công văn "${String(e.officialLetter).trim()}" giống mẫu ${g} nhưng đợt đang chọn ${e.tpa}.`, okText: 'Vẫn lưu', cancelText: 'Sửa lại', danger: false })) return; }
   if (!String(e.officialLetter || '').trim() && !await confirmBox({ title: 'Chưa nhập Công văn, vẫn lưu?', msg: 'Đợt hồ sơ này chưa có Công văn.', okText: 'Vẫn lưu', cancelText: 'Quay lại', danger: false })) return;
   const row = cleanTracker({ id: e.id || uid(), receivedDate: rd, tpa: e.tpa, officialLetter: String(e.officialLetter || '').trim(), amount: e.amount, caseCount: e.caseCount, status: e.status, tpc: e.tpc, enteredDate: dates.enteredDate, accountingDate: dates.accountingDate, paymentNote: trkPendNote(e.paymentNote, trkKeepPend(e)), pending: trkKeepPend(e), pendHist: trkKeepHist(e), ...(e.dcCheck ? { dcCheck: e.dcCheck } : {}), createdAt: e.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
   if (!e.id) { const k = trkDupKey(row); if (DB.tracker.rows.some(r => trkDupKey(r) === k)) return alert('Đợt hồ sơ này đã có trong danh sách.'); DB.tracker.rows.push(row); }
@@ -1530,7 +1542,7 @@ ACT.trkDoImp = async () => {
   }
   if (hi < 0) return alert('Không tìm thấy dòng tiêu đề có Ngày nhận, Công văn, TPA trong 40 dòng đầu.');
   const get = (r, k) => map[k] === undefined ? '' : r[map[k]];
-  const have = new Set(DB.tracker.rows.map(trkDupKey)); let add = 0, dup = 0, moved = 0; const noDate = [], noTpa = [], badTpa = [], errRows = [];
+  const have = new Set(DB.tracker.rows.map(trkDupKey)); let add = 0, dup = 0, moved = 0; const noDate = [], noTpa = [], badTpa = [], errRows = [], tpaWarn = [];
   const bad = (r, i, why, list) => { list.push(i); errRows.push([i, why, ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(c => r[c] == null ? '' : String(r[c]))]); };
   sh.rows.slice(hi + 1).forEach((r, idx) => {
     if (!r || !r.some(c => String(c == null ? '' : c).trim() !== '')) return;
@@ -1544,12 +1556,15 @@ ACT.trkDoImp = async () => {
     const note0 = String(get(r, 'paymentNote') == null ? '' : get(r, 'paymentNote')).replace(/_x000d_/gi, '').trim(), note = [note0, ...strange].filter(Boolean).join('\n');
     const row = cleanTracker({ id: uid(), receivedDate: rd, officialLetter: String(get(r, 'officialLetter')).trim(), amount: numAmount(get(r, 'amount')), caseCount: get(r, 'caseCount'), tpc: tv !== '' && !['KHONG', 'NO', 'FALSE', '0'].includes(tv), tpa, enteredDate: ent, accountingDate: acc, paymentNote: note, status: String(get(r, 'status') || '').trim(), createdAt: now, updatedAt: now });
     const k = trkDupKey(row); if (have.has(k)) { dup++; return; } have.add(k); DB.tracker.rows.push(row); add++;
+    const g = cvTpaWarn(row.officialLetter, row.tpa); if (g) tpaWarn.push(`Dòng ${line}: ${row.officialLetter} – đang chọn ${row.tpa}, giống mẫu ${g}`);
   });
   if (add) touch('tracker');
   const nErr = errRows.length, line = (n, t) => n ? `<li>${n} dòng ${t}</li>` : '';
+  const warnHTML = tpaWarn.length ? `<p class="warn2" style="margin-top:10px"><b>${tpaWarn.length}</b> đợt có Công văn không đúng mẫu TPA, ní kiểm tra lại:</p><ul class="sm">${tpaWarn.slice(0, 50).map(x => `<li>${esc(x)}</li>`).join('')}${tpaWarn.length > 50 ? `<li>… và ${tpaWarn.length - 50} đợt khác</li>` : ''}</ul>` : '';
+  if (!nErr && tpaWarn.length) { renderBody(); return modal(`<h3>Kết quả nhập Excel</h3><p>Đã nhập <b>${add}</b> đợt, bỏ qua <b>${dup}</b> dòng trùng.</p>${warnHTML}<div class="act"><span class="sp"></span><button class="btn pri" data-act="close">Đóng</button></div>`); }
   if (!nErr) { closeModal(); renderBody(); return toast(`Đã nhập ${add} đợt, bỏ qua ${dup} dòng trùng.` + (moved ? ` ${moved} đợt có chữ lạ ở ô ngày đã chuyển sang Ghi chú.` : '')); }
   S._trkErr = errRows; renderBody();
-  modal(`<h3>Kết quả nhập Excel</h3><p>Đã nhập <b>${add}</b> đợt, bỏ qua <b>${dup}</b> dòng trùng, <b>${nErr}</b> dòng lỗi:</p><ul>${line(noDate.length, 'thiếu hoặc sai Ngày nhận')}${line(noTpa.length, 'thiếu TPA')}${line(badTpa.length, 'sai TPA')}</ul>${moved ? `<p class="mut sm">${moved} đợt có chữ lạ ở ô ngày đã được chuyển sang Ghi chú.</p>` : ''}
+  modal(`<h3>Kết quả nhập Excel</h3><p>Đã nhập <b>${add}</b> đợt, bỏ qua <b>${dup}</b> dòng trùng, <b>${nErr}</b> dòng lỗi:</p><ul>${line(noDate.length, 'thiếu hoặc sai Ngày nhận')}${line(noTpa.length, 'thiếu TPA')}${line(badTpa.length, 'sai TPA')}</ul>${moved ? `<p class="mut sm">${moved} đợt có chữ lạ ở ô ngày đã được chuyển sang Ghi chú.</p>` : ''}${warnHTML}
   <div class="act"><button class="btn" data-act="trkErrDl">Tải file dòng lỗi</button><span class="sp"></span><button class="btn pri" data-act="close">Đóng</button></div>`);
 };
 ACT.trkErrDl = () => {
