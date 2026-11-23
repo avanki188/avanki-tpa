@@ -262,6 +262,27 @@ def main():
             lb = labels(fn)
             check(f'{fn}: File cần dò ở trên, File nguồn ở dưới', len(lb) == 2 and lb[0].startswith('File cần dò') and lb[1].startswith('File nguồn'), lb)
 
+        # ============ 10. Bổ sung CCCD
+        print('\n10. Bổ sung CCCD')
+        reset()
+        H = FHVI_SRC[2]
+        def row(i, name, cid, dob): return [i, f'TST-CC{i}', POL, name, cid, dob, 1000, 'BV', 'Ngoại trú', 'X', '05/11/2026']
+        goc = [H, row(1, 'NGUYEN CC MOT', '79192016939', '01/01/1990'), row(2, 'TRAN CC HAI', '', '02/02/1991'), row(3, 'LE CC BA', '', '03/03/1992'),
+               row(4, 'PHAM CC BON', '001090000004', '04/04/1993'), row(5, 'VO CC NAM', '01234567890', '05/05/1994'), row(6, 'DO CC SAU', 'B1234567', '06/06/1995')]
+        ds = [['Tên NĐBH', 'Ngày sinh', 'CCCD'], ['TRAN CC HAI', '02/02/1991', '12345678901'], ['LE CC BA', '03/03/1992', '183168684']]
+        ev("""async(a)=>{S.tab='tool';S.tool.fn='cccd';Object.assign(S.tool,{profile:'FHVI',file:mkf('goc.xlsx',a[0]),listFile:mkf('ds.xlsx',a[1]),cc:null});_al.length=0;await ACT.ccGo();}""", [b64(xlsx(goc)), b64(xlsx(ds))])
+        r = ev("()=>{const x=S.tool.cc;return x&&{msgs:x.msgs.map(m=>m.t),u8:x.file?u64(x.file.u8):null}}")
+        check('Bổ sung CCCD chạy được', r and r['u8'], (r and r['msgs'], ev('()=>_al')))
+        if r and r['u8']:
+            wb = openpyxl.load_workbook(io.BytesIO(base64.b64decode(r['u8']))); ws = wb.active
+            got = {ws.cell(i, 1).value: (ws.cell(i, 4).value, (ws.cell(i, 4).font.color.rgb if ws.cell(i, 4).font.color else None)) for i in range(2, ws.max_row + 1)}
+            check('File gốc CCCD 11 số → thêm 0, chữ màu cam', got.get('TST-CC1', ('',))[0] == '079192016939' and 'C2410C' in str(got['TST-CC1'][1]), got.get('TST-CC1'))
+            check('CCCD 11 số trong file danh sách → thêm 0 rồi dùng', got.get('TST-CC2', ('',))[0] == '012345678901', got.get('TST-CC2'))
+            check('CMND 9 số giữ nguyên', got.get('TST-CC3', ('',))[0] == '183168684', got.get('TST-CC3'))
+            check('CCCD đủ 12 số / hộ chiếu → không cần bổ sung', 'TST-CC4' not in got and 'TST-CC6' not in got, list(got))
+            check('11 số bắt đầu bằng 0 → vẫn báo lỗi như cũ', 'LỖI' in str(got.get('TST-CC5', ('',))[0]), got.get('TST-CC5'))
+            check('Thông báo có số hồ sơ tự thêm 0', any('tự thêm 0' in m for m in r['msgs']), r['msgs'])
+
         check('Không có lỗi JavaScript trong suốt quá trình', not errs, errs[:3])
         br.close()
 

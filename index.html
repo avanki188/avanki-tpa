@@ -982,7 +982,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.23-2';
+const APP_VER = '2026.11.23-3';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -2728,7 +2728,7 @@ RENDER.tool = () => {
   ${fld('TPA/Profile', `<select class="in" data-k="tool.profile" data-r="1">${optHTML(TPAS, t.profile, 'Chọn TPA/Profile')}</select>`)}</div>
   <div class="grid" style="margin-top:12px">${filePick('tool.file', 'File cần dò – File gốc')}${filePick('tool.listFile', 'File nguồn – Danh sách CCCD (không bắt buộc)')}</div>
   <div class="act"><button class="btn ok" data-enter-btn data-act="ccGo">Bổ sung CCCD</button></div></div></div>
-  <div>${ccResultHTML(t.cc)}<div class="panel"><p class="mut sm">Chỉ xử lý dòng có <b>CCCD trống hoặc có dấu *</b>; dòng đã có CCCD giữ nguyên. CCCD 11 số trong file gốc: báo lỗi, không sửa.<br>
+  <div>${ccResultHTML(t.cc)}<div class="panel"><p class="mut sm">Chỉ xử lý dòng có <b>CCCD trống hoặc có dấu *</b>; dòng đã có CCCD giữ nguyên. CCCD 11 số (không bắt đầu bằng 0) trong file gốc, file danh sách hoặc kho: tự thêm <b>0</b> vào đầu; trong file tải về ghi <b>chữ màu cam</b>.<br>
   Dò theo <b>Tên NĐBH (bỏ dấu) + DOB</b>, ra nhiều CCCD thì dò thêm <b>Số HĐ</b>. Dò <b>file danh sách</b> trước, không có mới dò <b>kho hồ sơ</b> (toàn bộ kho, mọi TPA); kho còn nhiều CCCD thì lấy theo <b>Ngày lập dự phòng gần nhất</b>.<br>
   File tải về: <b>Số HS TPA – Tên NĐBH – DOB – CCCD</b>, chỉ các hồ sơ đang thiếu CCCD, theo thứ tự file gốc; dòng lỗi ghi ngay trong cột CCCD.</p></div></div></div>`;
 };
@@ -2750,6 +2750,9 @@ const ccClean = v => String(v == null ? '' : v).normalize('NFKC').replace(/\s+/g
 const ccMasked = v => v.includes('*');
 const cc11 = v => /^\d{11}$/.test(v);
 const ccUsable = v => !!v && !ccMasked(v) && !cc11(v);
+/* CCCD toàn số, đúng 11 chữ số, không bắt đầu bằng 0 (Excel làm mất số 0) → thêm 0 vào đầu */
+const cc11Lost = v => /^[1-9]\d{10}$/.test(v);
+const ccPad = v => cc11Lost(v) ? '0' + v : v;
 const ccName = v => noAccent(v);
 const ccDob = v => { const iso = cellDate(v); return iso || noAccent(v).replace(/\s+/g, ''); };
 /* Chọn 1 CCCD từ danh sách ứng viên { id, pol, date }: dò thêm Số HĐ khi nhiều; byDate = lấy Ngày lập dự phòng gần nhất (kho) */
@@ -2778,7 +2781,7 @@ function ccListIndex(sheets) {
     }
     if (hi < 0) continue; found = true;
     for (const r of sh.rows.slice(hi + 1)) {
-      if (!r) continue; const id = ccClean(r[col.id]), nm = ccName(r[col.name]), db = ccDob(r[col.dob]); if (!nm || !db || !ccUsable(id)) continue;
+      if (!r) continue; const id = ccPad(ccClean(r[col.id])), nm = ccName(r[col.name]), db = ccDob(r[col.dob]); if (!nm || !db || !ccUsable(id)) continue;
       const k = nm + '|' + db; if (!idx.has(k)) idx.set(k, []); idx.get(k).push({ id, pol: col.pol === undefined ? '' : policyKey(cellText(r[col.pol])), date: '' });
     }
   }
@@ -2787,7 +2790,7 @@ function ccListIndex(sheets) {
 function ccStoreIndex() {
   const idx = new Map();
   for (const r of DB.claims.rows) {
-    const id = ccClean(r.identityNo), nm = ccName(r.insured), db = ccDob(r.dob); if (!nm || !db || !ccUsable(id)) continue;
+    const id = ccPad(ccClean(r.identityNo)), nm = ccName(r.insured), db = ccDob(r.dob); if (!nm || !db || !ccUsable(id)) continue;
     const k = nm + '|' + db; if (!idx.has(k)) idx.set(k, []); idx.get(k).push({ id, pol: policyKey(r.policyNo), date: String(r.reserveDate || '') });
   }
   return idx;
@@ -2804,10 +2807,11 @@ ACT.ccGo = async () => {
   let list = null;
   if (t.listFile) { list = ccListIndex(await readExcelFile(t.listFile)); if (!list) return fail('File danh sách không có đủ cột Tên NĐBH, DOB và CCCD (CMND).'); }
   const kho = ccStoreIndex(), text = { fmt: '@' }, red = { fmt: '@', color: 'C00000', b: true };
-  const out = [], st = { total: src.list.length, need: 0, ds: 0, kho: 0, err: 0 };
+  const out = [], st = { total: src.list.length, need: 0, ds: 0, kho: 0, err: 0, pad: 0 }, orange = { fmt: '@', color: 'C2410C', b: true };
   for (const r of src.list) {
     const cur = ccClean(r.identity); if (cur && !ccMasked(cur) && !cc11(cur)) continue; st.need++;
     const dobISO = cellDate(r.dobRaw), dobTxt = dobISO ? fmtVN(dobISO) : cellText(r.dobRaw);
+    if (cc11Lost(cur)) { st.pad++; out.push([{ v: r.claimNo, s: text }, r.insured, { v: dobTxt, s: text }, { v: ccPad(cur), s: orange }]); continue; }
     let v = '', bad = '';
     if (cc11(cur)) bad = 'LỖI: CCCD 11 số';
     else {
@@ -2827,7 +2831,7 @@ ACT.ccGo = async () => {
   if (!st.need) { msgs.push({ t: 'File gốc không có hồ sơ nào thiếu CCCD, không cần bổ sung.', cls: 'res-ok' }); t.cc = res; return renderBody(); }
   const base = safeFilePart(t.file.name.replace(/\.(xlsx|xlsm|xls)$/i, ''), 'FILE GOC');
   res.file = { name: `${base} - DA BO SUNG CCCD.xlsx`, u8: XL.write([{ name: 'Bổ sung CCCD', rows: [['Số HS TPA', 'Tên NĐBH', 'DOB', 'CCCD'].map(h => ({ v: h, s: HEAD_BLUE })), ...out], autofilter: 'A1:D1' }]) };
-  msgs.push({ t: `Đã bổ sung ${st.ds + st.kho}/${st.need} hồ sơ thiếu CCCD.${st.err ? ` ${st.err} dòng lỗi, xem cột CCCD trong file tải về.` : ''}`, cls: st.err ? '' : 'res-ok' });
+  msgs.push({ t: `Đã bổ sung ${st.ds + st.kho + st.pad}/${st.need} hồ sơ thiếu CCCD.${st.pad ? ` ${st.pad} hồ sơ CCCD 11 số đã tự thêm 0 ở đầu (chữ màu cam).` : ''}${st.err ? ` ${st.err} dòng lỗi, xem cột CCCD trong file tải về.` : ''}`, cls: st.err ? '' : 'res-ok' });
   t.cc = res; renderBody();
 };
 
