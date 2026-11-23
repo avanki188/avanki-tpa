@@ -155,7 +155,8 @@ def main():
                         ['7608000005', 46345, 46332, 'TST-0002', POL, '1.000000000000000', '500105', '250000.000000000000000', NOTE, 'Lỗi khác ABC']],
                        fmt={(2, 2): '0', (3, 2): '0'})
             ev("""async(a)=>{S.tab='tool';S.tool.fn='fix';Object.assign(S.tool,{profile:'FHVI',file:mkf('full.xlsx',a[0]),fixFile:mkf('baoloi.xlsx',a[1]),fx:null});_al.length=0;await ACT.fixGo();}""", [full_b64, b64(with_ns_prefix(err))])
-            r = ev("()=>{const x=S.tool.fx;return x&&{msgs:x.msgs.map(m=>m.t),fix:x.files.fix&&u64(x.files.fix.u8),rest:x.files.rest&&u64(x.files.rest.u8)}}")
+            r = ev("()=>{const x=S.tool.fx;return x&&{msgs:x.msgs.map(m=>m.t),fix:x.files.fix&&u64(x.files.fix.u8),rest:x.files.rest&&u64(x.files.rest.u8),names:[x.files.fix&&x.files.fix.name,x.files.rest&&x.files.rest.name]}}")
+            check('Tên file: FIX LOI - TPA - … (bỏ chữ DPBT)', r and r['names'] == ['FIX LOI - FHVI - full.xlsx', 'LOI CON LAI - FHVI - full.xlsx'], r and r['names'])
             check('Fix lỗi chạy được với file báo lỗi kiểu hệ thống', r and r['fix'], ev('()=>_al'))
             if r and r['fix']:
                 fx = list(read_xlsx(r['fix']).values())[0]; ci = fx[0].index('Số HSBT TPA')
@@ -251,6 +252,15 @@ def main():
         ev("()=>{_al.length=0;S.trk.edit={receivedDate:'05/11/2026',tpa:'FHVI',officialLetter:'01.11 - 04.11.26 - CV 9999',amount:2083000,caseCount:3,status:'Mới tiếp nhận',tpc:false,entL:[],accL:[],paymentNote:''};}")
         ev("async()=>{await ACT.trkSave();}")
         check('Trùng y hệt (ngày, CV, tiền, TPA, TPC) → chặn', any('đã có trong danh sách' in a for a in ev('()=>_al')) and ev('()=>DB.tracker.rows.length') == 2, ev('()=>_al'))
+
+        # ============ 9. Giao diện tab Công cụ
+        print('\n9. Giao diện tab Công cụ')
+        tabs = ev("()=>{S.tab='tool';S.tool.fn='cccd';renderApp();return [...document.querySelectorAll('[data-act=toolFn]')].map(b=>b.innerText.trim())}")
+        check('Thứ tự + tên mục mới', tabs == ['Bổ sung CCCD', 'Fix lỗi FTS', 'Check endors', 'Check nhập liệu', 'Update dữ liệu trống', 'DPBT quý'], tabs)
+        def labels(fn): return ev("(fn)=>{Object.assign(S.tool,{fn,file:null,fixFile:null,listFile:null});renderApp();return [...document.querySelectorAll('input[type=file][data-k^=\"tool.\"]')].map(i=>{const w=i.closest('.fl')||i.closest('label').parentElement;const sp=w.querySelector(':scope > span');return (sp?sp.innerText:w.innerText).trim()})}", fn)
+        for fn in ['cccd', 'fix', 'ps', 'dc']:
+            lb = labels(fn)
+            check(f'{fn}: File cần dò ở trên, File nguồn ở dưới', len(lb) == 2 and lb[0].startswith('File cần dò') and lb[1].startswith('File nguồn'), lb)
 
         check('Không có lỗi JavaScript trong suốt quá trình', not errs, errs[:3])
         br.close()

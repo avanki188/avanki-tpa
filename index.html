@@ -982,7 +982,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.23-1';
+const APP_VER = '2026.11.23-2';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1291,7 +1291,7 @@ RENDER.trk = () => {
     const km = trkKhoMatch(r.tpa, r.officialLetter, r.tpc), kc = !km.n ? 'none' : (km.n === Math.round(r.caseCount || 0) && Math.abs(km.sum - numAmount(r.amount)) <= 1) ? 'ok' : 'lech';
     const pn = (r.pending || []).length, base = pn ? String(r.paymentNote || '').replace(/\s*(?:·\s*)?pending\s*\d+\s*hs\s*/ig, '\n').split(/\r?\n/).map(x => x.trim()).filter(Boolean).join(' · ') : note;
     const noteH = `${base ? `<div class="nt1" title="${esc(base)}">${esc(base)}</div>` : ''}${pn ? `<a class="pdl" data-act="trkPend" data-v="${r.id}" title="Xem hồ sơ pending">pending ${pn}hs</a>` : trkPendDoneTag(r)}`;
-    return `<tr data-act="trkEdit" data-v="${r.id}" class="click"><td class="ctr">${fmtVN(r.receivedDate)}<br><span class="dl ${cls}">${d.closed ? 'Chốt ' : ''}${d.days} ngày</span></td><td title="${esc(r.officialLetter)}"><a class="cvl" data-act="trkCv" data-v="${r.id}" title="Xem hồ sơ trong kho theo Công văn này">${esc(r.officialLetter)}</a></td><td><b>${esc(r.tpa)}</b><br><span class="hsn">${r.caseCount} HS</span>${r.dcCheck ? ` <span class="dcok" title="Đã đối chiếu số tiền ${esc(new Date(r.dcCheck.at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }))} ${esc(new Date(r.dcCheck.at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }))} · ${r.dcCheck.n} HS · ${money(r.dcCheck.sum)}">✓</span>` : ''}</td><td class="ctr"><span class="kb ${kc}" title="Hồ sơ trong kho khớp Công văn: ${money(km.n)} HS · ${money(km.sum)}">Kho ${money(km.n)}/${money(Math.round(r.caseCount || 0))}</span></td><td class="num">${money(r.amount)}</td><td class="ctr">${r.tpc ? '<span class="tpcb">TPC</span>' : ''}</td>
+    return `<tr data-act="trkEdit" data-v="${r.id}" class="click"><td class="ctr">${fmtVN(r.receivedDate)}<br><span class="dl ${cls}">${d.closed ? 'Chốt ' : ''}${d.days} ngày</span></td><td title="${esc(r.officialLetter)}"><a class="cvl" data-act="trkCv" data-v="${r.id}" title="Xem hồ sơ trong kho theo Công văn này">${esc(r.officialLetter)}</a></td><td><b>${esc(r.tpa)}</b><br><span class="hsn">${r.caseCount} HS</span>${r.dcCheck ? ` <span class="dcok" title="Đã check nhập liệu ${esc(new Date(r.dcCheck.at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }))} ${esc(new Date(r.dcCheck.at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }))} · ${r.dcCheck.n} HS · ${money(r.dcCheck.sum)}">✓</span>` : ''}</td><td class="ctr"><span class="kb ${kc}" title="Hồ sơ trong kho khớp Công văn: ${money(km.n)} HS · ${money(km.sum)}">Kho ${money(km.n)}/${money(Math.round(r.caseCount || 0))}</span></td><td class="num">${money(r.amount)}</td><td class="ctr">${r.tpc ? '<span class="tpcb">TPC</span>' : ''}</td>
     <td class="ctr" title="${esc(r.enteredDate)}">${dl(r.enteredDate)}</td><td class="ctr" title="${esc(r.accountingDate)}">${dl(r.accountingDate)}</td><td class="ctr"><span class="bd ${trkStatCls(d.display)}">${esc(d.display)}</span></td><td class="note">${noteH}</td><td class="ctr"><button class="icon" data-act="trkEdit" data-v="${r.id}" title="Sửa">✎</button></td></tr>`;
   });
   return `<div class="panel" data-scope="trk"><div class="bar">
@@ -1344,7 +1344,7 @@ ACT.trkPendHist = v => {
 };
 ACT.trkPend = v => {
   const r = DB.tracker.rows.find(x => x.id === v); if (!r) return; const n = (r.pending || []).length;
-  msnModal(`${msnSeal(n)}<div class="msn-t"><b>Hồ sơ pending</b><span>${esc(r.officialLetter)}</span></div>${msnTpa(r.tpa)}`, `<p class="mut sm">${n} hồ sơ lỗi POLICY đang pending (ghi từ Fix lỗi).</p>${trkPendHTML(r)}`, `<button class="btn c-teal" data-nc data-act="trkPendDone" data-v="${r.id}">Đã bổ sung xong</button>`);
+  msnModal(`${msnSeal(n)}<div class="msn-t"><b>Hồ sơ pending</b><span>${esc(r.officialLetter)}</span></div>${msnTpa(r.tpa)}`, `<p class="mut sm">${n} hồ sơ lỗi POLICY đang pending (ghi từ Fix lỗi FTS).</p>${trkPendHTML(r)}`, `<button class="btn c-teal" data-nc data-act="trkPendDone" data-v="${r.id}">Đã bổ sung xong</button>`);
 };
 ACT.trkYear = v => { S.trk.year = +v; S.trk.applied = { year: +v, f: { ...S.trk.f }, all: false }; S.trk.page = 1; renderBody(); };
 ACT.trkSearch = () => { S.trk.applied = { year: S.trk.year, f: { ...S.trk.f }, all: true }; S.trk.page = 1; renderBody(); };
@@ -2222,7 +2222,7 @@ function convFormHTML(P) {
     : c.profile === 'INS' ? fld('Số CV', inp(P + '.insCv')) + fld('Năm', inp(P + '.insYear'))
     : c.profile === 'PPY' ? fld('CV', inp(P + '.ppyCv', 'VD: 645-2026'), 'full') + fld('Tháng', inp(P + '.ppyMonth')) + fld('Đợt', inp(P + '.ppyDot'))
     : c.profile === 'FPTIS' ? fld('Số CV', inp(P + '.fptCv', 'VD: 1820/26/FPT IS'), 'full') : '';
-  const btn = { n: 'Chuyển đổi & lưu dữ liệu', q: 'Chuyển đổi DPBT quý', f: 'Tạo file Fix lỗi', u: 'Đối chiếu và cập nhật' }[mode];
+  const btn = { n: 'Chuyển đổi & lưu dữ liệu', q: 'Chuyển đổi DPBT quý', f: 'Tạo file Fix lỗi FTS', u: 'Đối chiếu và cập nhật' }[mode];
   const modeChk = (k, label, dis) => `<label class="chk"><input type="checkbox" data-mode="${k}" data-change="convMode"${c[k] ? ' checked' : ''}${dis ? ' disabled' : ''}> ${label}</label>`;
   return `<div class="two"><div>
   <div class="panel" data-scope="${P}"><div class="grid">
@@ -2235,7 +2235,7 @@ function convFormHTML(P) {
   ${c.upd ? '' : `<div class="box"><span class="mut sm">Xem trước Ghi chú</span><div class="prev" id="pvConv">${esc(np ? np.note : (convNote(c, true) || { note: '' }).note) || '—'}</div></div>`}
   ${c.upd ? '' : `<div class="box"><span class="mut">DATA đang dùng: </span><b class="res-ok">${DB.data.rows.length} dòng DATA dùng chung</b> <a href="#" data-act="convData">Quản lý DATA</a></div>`}
   <div class="act"><button class="btn ok" data-enter-btn data-act="convGo">${btn}</button></div></div></div>
-  <div>${convResultHTML(r)}${c.upd ? `<div class="panel"><p class="mut sm"><b>Update dữ liệu thiếu</b>: dò theo <b>TPA + Số HSBT + Số hợp đồng</b> trong kho hồ sơ. File có trường nào trong <b>DOB, CCCD, Hình thức điều trị, Chẩn đoán, CSYT</b> thì cập nhật trường đó; ô trống trong file thì giữ nguyên dữ liệu trên app. <b>Ngày tổn thất</b> chỉ điền khi hồ sơ trên app đang trống. File nguồn là file gốc của TPA, đọc theo mapping trong Cài đặt.</p></div>` : ''}<div class="panel"${c.upd ? ' style="display:none"' : ''}><p class="mut sm">Tra theo <b>Số đơn BH ↔ Số HĐ</b> trong DATA: <b>Đơn vị = Mã đơn vị · Phòng ban = Mã đơn vị bỏ số 1 đầu · Đối tượng bảo hiểm = Tên HĐ · Khách hàng = Mã KH</b>. Nếu <b class="warn">Ngày tổn thất nằm ngoài Hiệu lực</b> của Số HĐ, app dừng tạo FULL và xuất Excel lỗi để kiểm tra. FULL không có cột STT.</p></div></div></div>`;
+  <div>${convResultHTML(r)}${c.upd ? `<div class="panel"><p class="mut sm"><b>Update dữ liệu trống</b>: dò theo <b>TPA + Số HSBT + Số hợp đồng</b> trong kho hồ sơ. File có trường nào trong <b>DOB, CCCD, Hình thức điều trị, Chẩn đoán, CSYT</b> thì cập nhật trường đó; ô trống trong file thì giữ nguyên dữ liệu trên app. <b>Ngày tổn thất</b> chỉ điền khi hồ sơ trên app đang trống. File nguồn là file gốc của TPA, đọc theo mapping trong Cài đặt.</p></div>` : ''}<div class="panel"${c.upd ? ' style="display:none"' : ''}><p class="mut sm">Tra theo <b>Số đơn BH ↔ Số HĐ</b> trong DATA: <b>Đơn vị = Mã đơn vị · Phòng ban = Mã đơn vị bỏ số 1 đầu · Đối tượng bảo hiểm = Tên HĐ · Khách hàng = Mã KH</b>. Nếu <b class="warn">Ngày tổn thất nằm ngoài Hiệu lực</b> của Số HĐ, app dừng tạo FULL và xuất Excel lỗi để kiểm tra. FULL không có cột STT.</p></div></div></div>`;
 }
 RENDER.conv = () => convFormHTML('conv');
 function convResultHTML(r, title, noFull) {
@@ -2243,7 +2243,7 @@ function convResultHTML(r, title, noFull) {
   const f = r.files || {}, dl = (k, label, cls) => f[k] && !(noFull && k === 'full') ? `<button class="btn ${cls || ''}" data-act="convDl" data-v="${k}">${label}</button>` : '';
   const rev = convState().review;
   return `<div class="panel"><h3>${title || 'Kết quả'}</h3>${r.msgs.map(m => `<p class="${m.cls || ''}">${esc(m.t)}</p>`).join('')}
-  <div class="bar">${dl('full', r.kind === 'fix' ? 'Tải file Fix lỗi' : 'Tải file FULL', 'pri')}${r.unitCount > 1 && !noFull ? '<button class="btn" data-act="convSplit">Tách theo mã phòng</button>' : ''}${dl('missing', 'Tải file lỗi thiếu trường', 'dng')}${dl('validity', 'Tải file lỗi hiệu lực', 'dng')}${dl('upd', 'Tải báo cáo update')}${dl('rest', `Tải file lỗi còn lại (${r.restRows || 0})`)}${dl('dup', 'Tải danh sách trùng')}</div>
+  <div class="bar">${dl('full', r.kind === 'fix' ? 'Tải file Fix lỗi FTS' : 'Tải file FULL', 'pri')}${r.unitCount > 1 && !noFull ? '<button class="btn" data-act="convSplit">Tách theo mã phòng</button>' : ''}${dl('missing', 'Tải file lỗi thiếu trường', 'dng')}${dl('validity', 'Tải file lỗi hiệu lực', 'dng')}${dl('upd', 'Tải báo cáo update')}${dl('rest', `Tải file lỗi còn lại (${r.restRows || 0})`)}${dl('dup', 'Tải danh sách trùng')}</div>
   ${rev ? convReviewHTML(rev) : ''}</div>`;
 }
 function convReviewHTML(rev) {
@@ -2275,7 +2275,7 @@ ACT.convGo = async () => {
   const c = convState(); c.result = null;
   if (!TPAS.includes(c.profile)) return nha('Chưa chọn TPA/Profile. Chọn FHVI, INS, PPY hoặc FPTIS trước nha ní.');
   if (!c.file) return nha('Chọn file nguồn trước nha ní.');
-  if (c.fix && !c.fixFile) return nha('Chọn thêm file báo lỗi để chạy Fix lỗi nha ní.');
+  if (c.fix && !c.fixFile) return nha('Chọn thêm file báo lỗi để chạy Fix lỗi FTS nha ní.');
   if (c.upd) return convUpdate();
   const dateISO = parseDateInput(c.date); if (!dateISO) return nha('Chọn Ngày lập dự phòng / Ngày thông báo trước nha ní.');
   let nn = convNote(c); if (!nn) return nha(`Nhập đủ phần Ghi chú theo rule ${c.profile} trước nha ní.`);
@@ -2344,8 +2344,8 @@ ACT.convGo = async () => {
   /* FULL */
   res.rows = out; res.unitCount = new Set(out.map(r => r.unitCode).filter(Boolean)).size;
   res.files.full = { name: nn.name + '.xlsx', u8: XL.write([buildFullSheet(out, profile, dateISO, nn.note)]) };
-  msgs.push({ t: `Đã tạo ${c.fix ? 'file Fix lỗi' : 'FULL'} gồm ${out.length} hồ sơ ${profile}. Tra DATA theo Số đơn BH ↔ Số HĐ: khớp ${out.length} dòng.`, cls: 'res-ok' });
-  if (c.fix) msgs.push({ t: 'Fix lỗi: không lưu vào kho hồ sơ và không cập nhật Theo dõi HS TPA.' });
+  msgs.push({ t: `Đã tạo ${c.fix ? 'file Fix lỗi FTS' : 'FULL'} gồm ${out.length} hồ sơ ${profile}. Tra DATA theo Số đơn BH ↔ Số HĐ: khớp ${out.length} dòng.`, cls: 'res-ok' });
+  if (c.fix) msgs.push({ t: 'Fix lỗi FTS: không lưu vào kho hồ sơ và không cập nhật Theo dõi HS TPA.' });
   else {
     if (dupFull.length) msgs.push({ t: `${dupFull.length} dòng trùng hoàn toàn: vẫn có trong FULL nhưng không lưu lại vào kho.` });
     const fresh = out.filter(r => !r.dup);
@@ -2449,14 +2449,14 @@ function fxFormHTML() {
   const t = S.tool, r = t.fx;
   return `<div class="fxwrap"><div><div class="panel" data-scope="tool"><div class="grid">
   ${fld('TPA/Profile', `<select class="in" data-k="tool.profile" data-r="1">${optHTML(TPAS, t.profile, 'Chọn TPA/Profile')}</select>`)}</div>
-  <div class="grid" style="margin-top:12px">${filePick('tool.file', 'File nguồn (dạng FULL, không có cột STT)')}${filePick('tool.fixFile', 'File báo lỗi')}</div>
-  <div class="act"><button class="btn ok" data-enter-btn data-act="fixGo">Tạo file Fix lỗi</button></div></div>
-  ${r ? `<div class="panel"><h3>Kết quả</h3>${r.msgs.map(m => `<p class="${m.cls || ''}">${esc(m.t)}</p>`).join('')}<div class="bar">${r.files.fix ? '<button class="btn pri" data-act="fxDl" data-v="fix">Tải file Fix lỗi</button>' : ''}${r.files.rest ? `<button class="btn dng" data-act="fxDl" data-v="rest">Tải file lỗi còn lại (${r.restN})</button>` : ''}</div></div>` : ''}
+  <div class="grid" style="margin-top:12px">${filePick('tool.fixFile', 'File cần dò – File báo lỗi (Số HS TPA · Lỗi)')}${filePick('tool.file', 'File nguồn – DPBT FULL (không có cột STT)')}</div>
+  <div class="act"><button class="btn ok" data-enter-btn data-act="fixGo">Tạo file Fix lỗi FTS</button></div></div>
+  ${r ? `<div class="panel"><h3>Kết quả</h3>${r.msgs.map(m => `<p class="${m.cls || ''}">${esc(m.t)}</p>`).join('')}<div class="bar">${r.files.fix ? '<button class="btn pri" data-act="fxDl" data-v="fix">Tải file Fix lỗi FTS</button>' : ''}${r.files.rest ? `<button class="btn dng" data-act="fxDl" data-v="rest">Tải file lỗi còn lại (${r.restN})</button>` : ''}</div></div>` : ''}
   <div class="panel"><p class="mut sm">Dò theo <b>Số HS TPA</b> trong file báo lỗi. <b>Lỗi 2 số đơn BH / 2 đơn vị</b>: thêm <b>A</b> cuối Số HS. <b>MSG_POLICY_NO_INVALID_REF_NO</b>: giữ Số HS, tô đỏ. File xuất giống file nguồn, chỉ giữ các hồ sơ được dò. Lỗi khác xuất riêng file lỗi còn lại. Không lưu kho hồ sơ.</p></div></div>
   <div>${fxPolHTML(r)}</div></div>`;
 }
 function fxPolHTML(r) {
-  if (!r || !r.groups) return `<div class="panel"><h3>Hồ sơ lỗi POLICY</h3><p class="mut">Chạy Fix lỗi xong, hồ sơ lỗi <b>MSG_POLICY_NO_INVALID_REF_NO</b> sẽ hiện ở đây, gom theo Ghi chú (CV). Tick <b>Pending</b> để ghi "pending Nhs" vào Ghi chú của đợt bên Theo dõi HS TPA.</p></div>`;
+  if (!r || !r.groups) return `<div class="panel"><h3>Hồ sơ lỗi POLICY</h3><p class="mut">Chạy Fix lỗi FTS xong, hồ sơ lỗi <b>MSG_POLICY_NO_INVALID_REF_NO</b> sẽ hiện ở đây, gom theo Ghi chú (CV). Tick <b>Pending</b> để ghi "pending Nhs" vào Ghi chú của đợt bên Theo dõi HS TPA.</p></div>`;
   if (!r.groups.length) return `<div class="panel"><h3>Hồ sơ lỗi POLICY</h3><p class="mut">Không có hồ sơ lỗi POLICY.</p></div>`;
   const n = r.groups.reduce((s, g) => s + g.rows.length, 0);
   return `<div class="panel"><h3>Hồ sơ lỗi POLICY (${n})</h3>${r.groups.length > 1 ? '<p class="mut sm">Các hồ sơ thuộc nhiều Ghi chú (CV) khác nhau, ní tick Pending đúng CV cần ghi.</p>' : ''}
@@ -2495,8 +2495,11 @@ ACT.fixGo = async () => {
     if (ks.has('p')) { nP++; const note = H.note >= 0 ? fxTxt(r[H.note]) : ''; if (!pol.has(note)) pol.set(note, []); pol.get(note).push({ claimNo: no, insured: H.ins >= 0 ? fxTxt(r[H.ins]) : '', policy: H.pol >= 0 ? fxTxt(r[H.pol]) : '', amount: H.am >= 0 ? r[H.am] : '' }); }
     out.push(row);
   });
-  const base = safeFilePart(t.file.name.replace(/\.\w+$/, ''), 'DPBT'), files = {};
-  files.fix = { name: `${base} - FIX LOI.xlsx`, u8: XL.write([{ name: fsh.name || 'DPBT TPA', rows: [head.map(h => ({ v: h == null ? '' : h, s: HEAD_BLUE })), ...out] }]) };
+  /* Tên file: FIX LOI - <TPA> - <tên file nguồn, bỏ chữ DPBT và TPA nếu có> */
+  const tpaRe = new RegExp('\\b' + t.profile + '\\b', 'ig');
+  const stem = t.file.name.replace(/\.\w+$/, '').replace(/\bDPBT\b/ig, ' ').replace(tpaRe, ' ').replace(/\s*[-–]\s*(?=[-–])/g, '').replace(/^[\s\-–_]+|[\s\-–_]+$/g, '').replace(/\s{2,}/g, ' ').trim();
+  const base = safeFilePart(stem ? `${t.profile} - ${stem}` : t.profile, t.profile), files = {};
+  files.fix = { name: `FIX LOI - ${base}.xlsx`, u8: XL.write([{ name: fsh.name || 'DPBT TPA', rows: [head.map(h => ({ v: h == null ? '' : h, s: HEAD_BLUE })), ...out] }]) };
   if (E.rest.length) {
     /* File lỗi còn lại chép từ file báo lỗi: cột Ngày đổi số ngày → ngày; số lưu dạng chữ "15150137.000000000000000" → số thật */
     const eh = E.head || head, eDate = eh.map(h => /NGAY/.test(noAccent(h == null ? '' : String(h))));
@@ -2508,11 +2511,11 @@ ACT.fixGo = async () => {
     const rest = E.rest.map(r => (r || []).map(fixCell));
     files.rest = { name: `LOI CON LAI - ${base}.xlsx`, u8: XL.write([{ name: 'Lỗi còn lại', rows: [...(E.head ? [E.head.map(h => ({ v: h == null ? '' : h, s: HEAD_BLUE }))] : []), ...rest] }]) };
   }
-  const msgs = [{ t: `Đã tạo file Fix lỗi gồm ${out.length} hồ sơ ${t.profile}: ${nA} hồ sơ thêm A (lỗi 2 số đơn BH / 2 đơn vị), ${nP} hồ sơ lỗi POLICY (tô đỏ Số HS).`, cls: 'res-ok' }];
+  const msgs = [{ t: `Đã tạo file Fix lỗi FTS gồm ${out.length} hồ sơ ${t.profile}: ${nA} hồ sơ thêm A (lỗi 2 số đơn BH / 2 đơn vị), ${nP} hồ sơ lỗi POLICY (tô đỏ Số HS).`, cls: 'res-ok' }];
   if (E.rest.length) msgs.push({ t: `File báo lỗi còn ${E.rest.length} dòng lỗi khác, đã tách ra file lỗi còn lại.`, cls: 'warn2' });
-  msgs.push({ t: 'Fix lỗi không lưu vào kho hồ sơ.' });
+  msgs.push({ t: 'Fix lỗi FTS không lưu vào kho hồ sơ.' });
   t.fx = { msgs, files, restN: E.rest.length, profile: t.profile, groups: [...pol].map(([note, rows]) => ({ note, rows })) };
-  renderBody(); toast('Đã tạo file Fix lỗi');
+  renderBody(); toast('Đã tạo file Fix lỗi FTS');
 };
 ACT.fixPend = v => {
   const r = S.tool.fx, g = r && r.groups[+v]; if (!g) return;
@@ -2592,7 +2595,7 @@ function psResultHTML(r) {
   const cnt = k => r.rows.filter(x => x.kind === k).length, ok = cnt('ok'), chk = cnt('chk'), no = cnt('no'), v = S.tool.psView || 'all';
   const chip = (k, l, n) => `<button class="btn sm2${v === k ? ' pri' : ''}" data-nc data-act="psView" data-v="${k}">${l} (${n})</button>`;
   const rows = r.rows.filter(x => v === 'all' || x.kind === v);
-  return `<div class="panel"><h3>Kết quả kiểm tra phát sinh</h3>
+  return `<div class="panel"><h3>Kết quả Check endors</h3>
   <p class="psum"><b style="color:#ff7a1a">${ok} / ${r.n}</b> NĐBH đã phát sinh bồi thường${chk ? ` · <b class="warn">${chk}</b> cần kiểm tra` : ''} <span class="mut sm">· nguồn: ${esc(r.src)}</span></p>
   <div class="bar" style="margin:6px 0 10px">${chip('all', 'Tất cả', r.n)}${chip('ok', 'Đã phát sinh', ok)}${chip('chk', 'Cần kiểm tra', chk)}${chip('no', 'Chưa phát sinh', no)}</div>
   ${rows.length ? dataTable(['STT', 'Tên NĐBH', 'Ngày sinh', 'CMND/CCCD', 'Số hợp đồng', 'Số HSBT', 'Ghi chú'], rows.map(x => `<tr class="ps-${x.kind}"><td class="ctr">${r.rows.indexOf(x) + 1}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.dob)}</td><td>${esc(x.id)}</td><td>${esc(x.pols)}</td><td>${esc(x.claims)}</td><td>${esc(x.note)}</td></tr>`)) : '<p class="mut">Không có dòng nào.</p>'}</div>`;
@@ -2701,7 +2704,7 @@ function dcResultHTML(r) {
   const list = r.drafts.map(x => ({ kind: 'draft', no: x.no, name: x.name, a: x.a == null ? '' : x.a, b: x.amt, d: '', note: `Trạng thái ${x.st}${x.hsbt ? ' · ' + x.hsbt : ''}` })).concat(err);
   const LB = { draft: 'DRAFT', ...DC_KIND };
   const tbl = nErr ? dataTable(['STT', 'Số HSBT TPA', 'NĐBH', 'Số tiền DPBT ntệ', 'Tổng tiền', 'Chênh lệch', 'Lỗi', 'Ghi chú'], list.map((x, i) => `<tr class="dc-${x.kind === 'draft' ? 'a' : x.kind}"><td class="ctr">${i + 1}</td><td><b>${esc(x.no)}</b></td><td>${esc(x.name)}</td><td class="num">${mc(x.a)}</td><td class="num">${mc(x.b)}</td><td class="num">${x.kind === 'lech' ? `<b>${money(x.d)}</b>` : ''}</td><td><b>${LB[x.kind]}</b></td><td>${esc(x.note)}</td></tr>`), '', 'dc') : '';
-  return `<div class="panel"><h3>Kết quả đối chiếu số tiền</h3>
+  return `<div class="panel"><h3>Kết quả Check nhập liệu</h3>
   <p class="psum">${nErr ? `<b style="color:#ff7a1a">${nErr}</b> lỗi${nd ? ` · <b>${nd}</b> DRAFT` : ''}${nl ? ` · <b>${nl}</b> lệch số tiền` : ''}${na ? ` · <b>${na}</b> thiếu ở nguồn` : ''}${nb ? ` · <b>${nb}</b> thiếu ở file cần dò` : ''}` : '<b class="res-ok">Không có lỗi, số tiền khớp hết ✓</b>'}</p>
   ${r.trk ? `<p class="${r.trk.cls}">${esc(r.trk.t)}</p>` : ''}
   <div class="kv"><span>Số HS file cần dò / nguồn (${DC_TA})</span><b>${money(r.na)} / ${money(r.nb)}</b><span>Tổng Số tiền DPBT ntệ</span><b>${money(r.sa)}</b><span>Tổng Tổng tiền (nguồn)</span><b>${money(r.sb)}</b><span>Chênh lệch tổng</span><b class="${diff ? 'res-bad' : 'res-ok'}">${money(diff)}</b></div>
@@ -2714,7 +2717,7 @@ function dcFormHTML() {
   <p class="mut sm" style="margin-top:10px">File nguồn: dòng <b>${DC_TA}</b> gom theo <b>Số HSBT TPA</b>, trùng thì <b>cộng Tổng tiền</b>; dòng <b>${DC_DRAFT}</b> báo lỗi. So <b>Số tiền DPBT ntệ ↔ Tổng tiền</b>, lệch từ 1 đồng là báo. Có lỗi thì tải file báo lỗi (DRAFT + lệch/thiếu). Không lỗi và số HS bằng <b>Số lượng HS</b> của đợt (dò theo Ghi chú) thì gắn dấu <b>✓</b> bên Theo dõi HS TPA.</p></div>
   ${dcResultHTML(S.tool.dc)}`;
 }
-const TOOL_FN = [['cccd', 'Bổ sung CCCD'], ['upd', 'Update dữ liệu thiếu'], ['quarter', 'DPBT quý'], ['fix', 'Fix lỗi'], ['ps', 'Kiểm tra phát sinh'], ['dc', 'Đối chiếu số tiền']];
+const TOOL_FN = [['cccd', 'Bổ sung CCCD'], ['fix', 'Fix lỗi FTS'], ['ps', 'Check endors'], ['dc', 'Check nhập liệu'], ['upd', 'Update dữ liệu trống'], ['quarter', 'DPBT quý']];
 RENDER.tool = () => {
   const t = S.tool, seg = `<div class="bar" style="margin-bottom:12px">${TOOL_FN.map(([k, l]) => `<button class="btn${t.fn === k ? ' pri' : ''}" data-nc data-act="toolFn" data-v="${k}">${l}</button>`).join('')}</div>`;
   if (t.fn === 'fix') return seg + fxFormHTML();
@@ -2723,7 +2726,7 @@ RENDER.tool = () => {
   if (t.fn !== 'cccd') return seg + convFormHTML('tool');
   return seg + `<div class="two"><div><div class="panel" data-scope="tool"><div class="grid">
   ${fld('TPA/Profile', `<select class="in" data-k="tool.profile" data-r="1">${optHTML(TPAS, t.profile, 'Chọn TPA/Profile')}</select>`)}</div>
-  <div class="grid" style="margin-top:12px">${filePick('tool.file', 'File gốc')}${filePick('tool.listFile', 'File danh sách CCCD (không bắt buộc)')}</div>
+  <div class="grid" style="margin-top:12px">${filePick('tool.file', 'File cần dò – File gốc')}${filePick('tool.listFile', 'File nguồn – Danh sách CCCD (không bắt buộc)')}</div>
   <div class="act"><button class="btn ok" data-enter-btn data-act="ccGo">Bổ sung CCCD</button></div></div></div>
   <div>${ccResultHTML(t.cc)}<div class="panel"><p class="mut sm">Chỉ xử lý dòng có <b>CCCD trống hoặc có dấu *</b>; dòng đã có CCCD giữ nguyên. CCCD 11 số trong file gốc: báo lỗi, không sửa.<br>
   Dò theo <b>Tên NĐBH (bỏ dấu) + DOB</b>, ra nhiều CCCD thì dò thêm <b>Số HĐ</b>. Dò <b>file danh sách</b> trước, không có mới dò <b>kho hồ sơ</b> (toàn bộ kho, mọi TPA); kho còn nhiều CCCD thì lấy theo <b>Ngày lập dự phòng gần nhất</b>.<br>
@@ -3068,7 +3071,7 @@ function xlConvCol(done) {
   <div class="grid">${c.upd ? '' : fld('Ngày lập dự phòng / Ngày thông báo', dtInp('conv.date'), 'full')}${own}${filePick('conv.file', 'File nguồn')}</div>
   ${c.upd ? '' : manBox('Ghi chú', 'conv')}
   <div class="box"><span class="mut">DATA đang dùng: </span><b class="res-ok">${DB.data.rows.length} dòng</b> <a href="#" data-act="convData">Quản lý DATA</a></div>
-  <div class="act"><button class="btn ok" data-enter-btn data-act="convGo">${c.upd ? 'Đối chiếu và cập nhật' : 'Chuyển đổi & lưu dữ liệu'}</button>${f ? `<button class="btn pri" data-act="convDl" data-v="full">${c.result.kind === 'fix' ? 'Tải file Fix lỗi' : 'Tải file FULL'}</button>` : ''}${f && c.result.unitCount > 1 ? '<button class="btn" data-act="convSplit">Tách theo mã phòng</button>' : ''}</div></div>`;
+  <div class="act"><button class="btn ok" data-enter-btn data-act="convGo">${c.upd ? 'Đối chiếu và cập nhật' : 'Chuyển đổi & lưu dữ liệu'}</button>${f ? `<button class="btn pri" data-act="convDl" data-v="full">${c.result.kind === 'fix' ? 'Tải file Fix lỗi FTS' : 'Tải file FULL'}</button>` : ''}${f && c.result.unitCount > 1 ? '<button class="btn" data-act="convSplit">Tách theo mã phòng</button>' : ''}</div></div>`;
 }
 function xlBkCol(done) {
   const b = S.bk, r = b.result;
