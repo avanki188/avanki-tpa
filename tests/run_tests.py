@@ -77,8 +77,8 @@ def main():
               S.tab='xl';S.conv.result=null;S.bk.result=null;S.dn.result=null;S.tool.fx=null;S.tool.dc=null;renderApp();}""", CONTRACT)
         ev = pg.evaluate
 
-        def conv(src=FHVI_SRC):
-            ev("""async(b)=>{S.tab='xl';Object.assign(S.conv,{profile:'FHVI',date:'20/11/2026',gd:'GD 01.11 - 04.11.26',noteMan:null,file:mkf('nguon.xlsx',b),result:null,review:null});await ACT.convGo();}""", b64(xlsx(src)))
+        def conv(src=FHVI_SRC, tpc=False):
+            ev("""async(a)=>{S.tab='xl';Object.assign(S.conv,{profile:'FHVI',date:'20/11/2026',gd:'GD 01.11 - 04.11.26',tpc:a[1],noteMan:null,file:mkf('nguon.xlsx',a[0]),result:null,review:null});await ACT.convGo();}""", [b64(xlsx(src)), tpc])
             return ev("()=>{const r=S.conv.result;return r&&{msgs:r.msgs.map(m=>m.t),files:Object.fromEntries(Object.entries(r.files||{}).map(([k,v])=>[k,u64(v.u8)]))}}")
 
         # ============ 1. Đọc Excel
@@ -216,6 +216,41 @@ def main():
         rid = ev("()=>{const r=DB.tracker.rows[1];r.dcCheck={at:new Date().toISOString(),n:5,sum:1000};return r.id}")
         save('PPY', '685-2026 (T11 DOT 9)', rid=rid)
         check('Sửa đợt vẫn giữ dấu ✓ đối chiếu', ev("(id)=>!!DB.tracker.rows.find(r=>r.id===id).dcCheck", rid))
+
+        # ============ 8. TPC và bắt trùng đợt
+        print('\n8. TPC và bắt trùng đợt')
+        reset()
+        conv()
+        tpc_src = FHVI_SRC[:3] + [[1, 'TST-0101', POL, 'PHAM THI TPC', '001090000101', '04/04/1993', 777000, 'BENH VIEN THU D', 'Ngoại trú', 'Đau', '08/11/2026']]
+        r = conv(tpc_src, tpc=True)
+        check('Chuyển đổi có tick TPC → Ghi chú có đuôi " - TPC"', ev("()=>DB.claims.rows.filter(c=>/- TPC$/.test(c.note)).length") == 1, r and r['msgs'])
+        ev("""()=>{S.conv.tpc=false;DB.tracker.rows=[cleanTracker({id:'rg',receivedDate:'2026-11-05',tpa:'FHVI',officialLetter:'01.11 - 04.11.26 - CV 9999',amount:2083000,caseCount:3,status:'Mới tiếp nhận',enteredDate:'',accountingDate:'',paymentNote:''}),
+          cleanTracker({id:'tp',receivedDate:'2026-11-06',tpa:'FHVI',officialLetter:'01.11 - 04.11.26 - CV 9999',amount:777000,caseCount:1,tpc:true,status:'Mới tiếp nhận',enteredDate:'',accountingDate:'',paymentNote:''})];}""")
+        k = ev("()=>[trkKhoMatch('FHVI','01.11 - 04.11.26 - CV 9999',false).n,trkKhoMatch('FHVI','01.11 - 04.11.26 - CV 9999',true).n]")
+        check('Kho: đợt thường chỉ đếm hồ sơ thường, đợt TPC chỉ đếm hồ sơ TPC', k == [3, 1], k)
+        m = ev("()=>[fxMatch('FHVI','GD 01.11 - 04.11.26'),fxMatch('FHVI','GD 01.11 - 04.11.26 - TPC')].map(x=>x.row?x.row.id:x.err)")
+        check('Đối chiếu ✓ / Fix lỗi: Ghi chú TPC dò ra đợt TPC, thường dò ra đợt thường', m == ['rg', 'tp'], m)
+        f = ev("()=>[true,false].map(t=>{const x=trkFindMatch({tpa:'FHVI',tpc:t,linkDate:'2026-11-20',texts:['GD 01.11 - 04.11.26'+(t?' - TPC':'')],caseCount:0,amount:0});return x.row?x.row.id:x.res})")
+        check('Tự chuyển trạng thái: tick TPC dò đợt TPC, không tick dò đợt thường', f == ['tp', 'rg'], f)
+        ev("""()=>{S.tab='trk';S.trk.year='2026';S.trk.applied={year:'2026',f:{...S.trk.f},all:true};renderApp();}""")
+        cells = ev("()=>[...document.querySelectorAll('tr[data-act=trkEdit]')].map(tr=>tr.innerText.replace(/\\s+/g,' '))")
+        check('Bảng Theo dõi: cột Kho hiện 3/3 và 1/1', any('Kho 3/3' in c for c in cells) and any('Kho 1/1' in c for c in cells), cells)
+        def add(tpc, date, amt, ans):
+            ev("""(a)=>{_cf.length=0;_al.length=0;_cfAns=a[3];S.tab='trk';S.trk.edit={receivedDate:a[1],tpa:'FHVI',officialLetter:'GD 01.11-04.11.26 CV9999',amount:a[2],caseCount:3,status:'Mới tiếp nhận',tpc:a[0],entL:[],accL:[],paymentNote:''};}""", [tpc, date, amt, ans])
+            ev("async()=>{await ACT.trkSave();}")
+            return ev("()=>({cf:_cf.slice(),al:_al.slice(),n:DB.tracker.rows.length})")
+        r = add(False, '21/11/2026', 2083001, False)
+        check('Cùng TPA + Công văn (gõ khác, khác ngày, khác tiền) → hỏi trùng đợt, Sửa lại thì không lưu', r['n'] == 2 and any('trùng đợt' in c for c in r['cf']), r)
+        r = add(False, '21/11/2026', 2083001, True)
+        check('Bấm Vẫn lưu → lưu được', r['n'] == 3, r)
+        r = add(True, '22/11/2026', 5000, True)
+        check('Thêm đợt TPC khi đã có đợt TPC cùng Công văn → hỏi trùng (chỉ nêu đợt TPC)', len(r['cf']) == 1 and 'trùng đợt' in r['cf'][0] and '· TPC' in r['cf'][0] and '2.083.000' not in r['cf'][0], r)
+        ev("()=>{DB.tracker.rows=DB.tracker.rows.filter(x=>x.id==='rg');}")
+        r = add(True, '22/11/2026', 5000, True)
+        check('Đợt TPC cùng Công văn với đợt thường → không coi là trùng', r['n'] == 2 and not any('trùng đợt' in c for c in r['cf']), r)
+        ev("()=>{_al.length=0;S.trk.edit={receivedDate:'05/11/2026',tpa:'FHVI',officialLetter:'01.11 - 04.11.26 - CV 9999',amount:2083000,caseCount:3,status:'Mới tiếp nhận',tpc:false,entL:[],accL:[],paymentNote:''};}")
+        ev("async()=>{await ACT.trkSave();}")
+        check('Trùng y hệt (ngày, CV, tiền, TPA, TPC) → chặn', any('đã có trong danh sách' in a for a in ev('()=>_al')) and ev('()=>DB.tracker.rows.length') == 2, ev('()=>_al'))
 
         check('Không có lỗi JavaScript trong suốt quá trình', not errs, errs[:3])
         br.close()

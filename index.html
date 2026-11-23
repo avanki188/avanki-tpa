@@ -249,6 +249,7 @@ const claimKey = v => String(v == null ? '' : v).normalize('NFKC').replace(/[–
 const normSearch = v => String(v == null ? '' : v).normalize('NFKC').trim().replace(/\s+/g, ' ').toUpperCase();
 const noAccent = v => normSearch(v).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/Đ/g, 'D');
 const safeFilePart = (s, fb) => { const t = String(s == null ? '' : s).replace(/[\\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim(); return t || fb || ''; };
+const isTpcNote = s => /\s*-\s*TPC\s*$/i.test(String(s == null ? '' : s));
 const withTpc = (s, on) => (on && s && !/\s*-\s*TPC$/i.test(s)) ? s + ' - TPC' : s;
 function numAmount(v) {
   let n = typeof v === 'number' ? v : Number(String(v == null ? '' : v).replace(/[^0-9.\-]/g, ''));
@@ -981,7 +982,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.20-1';
+const APP_VER = '2026.11.23-1';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1119,7 +1120,10 @@ function trkDerived(r) {
   const finished = !!end || r.status === 'Đã chuyển KT' || r.status === 'Hoàn thành';
   return { days, finished, closed: !!end, display: !finished && days >= 6 ? 'Trễ' : r.status };
 }
-const trkDupKey = r => [r.receivedDate, normSearch(r.officialLetter), Math.round(r.amount), r.tpa].join('|');
+const trkDupKey = r => [r.receivedDate, normSearch(r.officialLetter), Math.round(r.amount), r.tpa, r.tpc ? 'TPC' : ''].join('|');
+/* Cùng đợt: cùng TPA + cùng TPC + Công văn cùng định danh (so như cột Kho), không xét ngày nhận / số tiền */
+const trkSameBatch = (e, rows) => (rows || DB.tracker.rows).filter(r => r !== e && (!e.id || r.id !== e.id) && r.tpa === e.tpa && !!r.tpc === !!e.tpc && String(r.officialLetter || '').trim() && String(e.officialLetter || '').trim() && trkScore(e.tpa, r.officialLetter, e.officialLetter) >= trkNeed(e.tpa) && trkScore(e.tpa, e.officialLetter, r.officialLetter) >= trkNeed(e.tpa));
+const trkBatchLabel = r => `${r.officialLetter} (${r.tpa}${r.tpc ? ' · TPC' : ''}, nhận ${fmtVN(r.receivedDate)}, ${r.caseCount || 0} HS, ${money(r.amount)})`;
 const canonTpa = s => { const t = noAccent(s).replace(/\s+/g, ''); if (t === 'PAPAYA' || t === 'PPY') return 'PPY'; if (['FPTIS', 'AZINSU', 'FPTISU'].includes(t)) return 'FPTIS'; if (t === 'INS') return 'INS'; if (t === 'FHVI') return 'FHVI'; return String(s).trim().toUpperCase(); };
 
 /* ---------- Liên kết với DPBT / bảng kê / ghi chú hồ sơ ---------- */
@@ -1193,7 +1197,7 @@ const nameHit = (a, b) => { a = noAccent(a); b = noAccent(b); return a.length >=
 /* h = {tpa, linkDate, texts:[], companies:[], caseCount, amount}; kind 'dpbt' | 'bk' */
 function trkFindMatch(h, kind) {
   const y = (h.linkDate || vnToday()).slice(0, 4);
-  const cands = DB.tracker.rows.filter(r => r.tpa === h.tpa && r.receivedDate.slice(0, 4) === y && !String(r.accountingDate || '').trim() && r.status !== 'Đã chuyển KT' && r.status !== 'Hoàn thành' && (!r.receivedDate || r.receivedDate <= h.linkDate));
+  const cands = DB.tracker.rows.filter(r => r.tpa === h.tpa && (h.tpc == null || !!r.tpc === !!h.tpc) && r.receivedDate.slice(0, 4) === y && !String(r.accountingDate || '').trim() && r.status !== 'Đã chuyển KT' && r.status !== 'Hoàn thành' && (!r.receivedDate || r.receivedDate <= h.linkDate));
   const scored = [];
   for (const r of cands) {
     const id = Math.max(0, ...(h.texts || []).map(t => identityScore(h.tpa, t, r.officialLetter)));
@@ -1218,7 +1222,7 @@ function trkLinkDpbt(h) {
 function trkLinkDntt(h) {
   const lim = new Date(Date.parse(h.date) - 400 * 864e5).toISOString().slice(0, 10), scored = [];
   for (const r of DB.tracker.rows) {
-    if (r.tpa !== h.tpa || (r.receivedDate && (r.receivedDate > h.date || r.receivedDate < lim))) continue;
+    if (r.tpa !== h.tpa || (h.tpc != null && !!r.tpc !== !!h.tpc) || (r.receivedDate && (r.receivedDate > h.date || r.receivedDate < lim))) continue;
     const id = Math.max(0, ...h.texts.map(t => trkScore(h.tpa, t, r.officialLetter))); if (id < trkNeed(h.tpa)) continue;
     const cs = h.count > 0 && r.caseCount === h.count, am = h.amount > 0 && Math.abs(numAmount(r.amount) - h.amount) <= 1;
     scored.push({ r, score: id + (cs ? 3 : 0) + (am ? 3 : 0) });
@@ -1284,7 +1288,7 @@ RENDER.trk = () => {
   const dl = v => { const L = String(v || '').split('\n').map(s => s.trim()).filter(Boolean); if (!L.length) return ''; const more = L.length > 2 ? ` <span class="mut">+${L.length - 2}</span>` : ''; return `<div>${esc(L[0])}</div>` + (L[1] ? `<div>${esc(L[1])}${more}</div>` : ''); };
   const body = slice.map(r => {
     const d = trkDerived(r), cls = d.closed ? 'gray' : (!d.finished && d.days >= 6) ? 'red' : (!d.finished && d.days > 3) ? 'yellow' : 'green', note = String(r.paymentNote || '').replace(/\s*\n\s*/g, ' · ');
-    const km = trkKhoMatch(r.tpa, r.officialLetter), kc = !km.n ? 'none' : (km.n === Math.round(r.caseCount || 0) && Math.abs(km.sum - numAmount(r.amount)) <= 1) ? 'ok' : 'lech';
+    const km = trkKhoMatch(r.tpa, r.officialLetter, r.tpc), kc = !km.n ? 'none' : (km.n === Math.round(r.caseCount || 0) && Math.abs(km.sum - numAmount(r.amount)) <= 1) ? 'ok' : 'lech';
     const pn = (r.pending || []).length, base = pn ? String(r.paymentNote || '').replace(/\s*(?:·\s*)?pending\s*\d+\s*hs\s*/ig, '\n').split(/\r?\n/).map(x => x.trim()).filter(Boolean).join(' · ') : note;
     const noteH = `${base ? `<div class="nt1" title="${esc(base)}">${esc(base)}</div>` : ''}${pn ? `<a class="pdl" data-act="trkPend" data-v="${r.id}" title="Xem hồ sơ pending">pending ${pn}hs</a>` : trkPendDoneTag(r)}`;
     return `<tr data-act="trkEdit" data-v="${r.id}" class="click"><td class="ctr">${fmtVN(r.receivedDate)}<br><span class="dl ${cls}">${d.closed ? 'Chốt ' : ''}${d.days} ngày</span></td><td title="${esc(r.officialLetter)}"><a class="cvl" data-act="trkCv" data-v="${r.id}" title="Xem hồ sơ trong kho theo Công văn này">${esc(r.officialLetter)}</a></td><td><b>${esc(r.tpa)}</b><br><span class="hsn">${r.caseCount} HS</span>${r.dcCheck ? ` <span class="dcok" title="Đã đối chiếu số tiền ${esc(new Date(r.dcCheck.at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }))} ${esc(new Date(r.dcCheck.at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }))} · ${r.dcCheck.n} HS · ${money(r.dcCheck.sum)}">✓</span>` : ''}</td><td class="ctr"><span class="kb ${kc}" title="Hồ sơ trong kho khớp Công văn: ${money(km.n)} HS · ${money(km.sum)}">Kho ${money(km.n)}/${money(Math.round(r.caseCount || 0))}</span></td><td class="num">${money(r.amount)}</td><td class="ctr">${r.tpc ? '<span class="tpcb">TPC</span>' : ''}</td>
@@ -1306,8 +1310,8 @@ RENDER.trk = () => {
 };
 ACT.trkCv = v => {
   const r = DB.tracker.rows.find(x => x.id === v); if (!r) return;
-  const m = trkKhoMatch(r.tpa, r.officialLetter); if (!m.n) return toast('Chưa có hồ sơ khớp với Công văn này', 'find');
-  const f = { ...emptySrF(), tpa: r.tpa, trk: { id: r.id, tpa: r.tpa, cv: r.officialLetter } };
+  const m = trkKhoMatch(r.tpa, r.officialLetter, r.tpc); if (!m.n) return toast('Chưa có hồ sơ khớp với Công văn này', 'find');
+  const f = { ...emptySrF(), tpa: r.tpa, trk: { id: r.id, tpa: r.tpa, cv: r.officialLetter, tpc: !!r.tpc } };
   ACT.tab('search'); S.search.f = f; S.search.applied = { ...f }; S.search.page = 1; S.search.sel = {}; S.search.all = false; renderBody();
 };
 /* Hồ sơ pending: thẻ nhiệm vụ (mỗi hồ sơ 1 thẻ, vạch trái màu TPA) */
@@ -1360,21 +1364,22 @@ function trkNoteGroups() {
 }
 /* Hồ sơ trong kho có Ghi chú khớp Công văn: dùng cho dòng Kho hồ sơ, cột Kho, link sang Tìm kiếm */
 const trkNeed = tpa => tpa === 'FHVI' ? 6 : 20;
-function trkKhoMatch(tpa, cv) {
+/* Kho của đợt: cùng TPA + Công văn cùng định danh + cùng TPC (hồ sơ TPC = Ghi chú có đuôi " - TPC") */
+function trkKhoMatch(tpa, cv, tpc) {
   cv = String(cv || '').trim(); const out = { n: 0, sum: 0, notes: new Set() }; if (!tpa || !cv) return out;
-  for (const x of trkNoteGroups().values()) if (x.tpa === tpa && identityScore(tpa, x.note, cv) >= trkNeed(tpa) && !(tpa === 'PPY' && ppyConflict(x.note, cv))) { out.n += x.n; out.sum += x.sum; out.notes.add(x.note); }
+  for (const x of trkNoteGroups().values()) if (x.tpa === tpa && isTpcNote(x.note) === !!tpc && identityScore(tpa, x.note, cv) >= trkNeed(tpa) && !(tpa === 'PPY' && ppyConflict(x.note, cv))) { out.n += x.n; out.sum += x.sum; out.notes.add(x.note); }
   return out;
 }
 const trkPendSet = r => new Set((r && r.pending || []).map(claimKey));
 function trkKhoListHTML(e) {
-  const m = trkKhoMatch(e.tpa, e.officialLetter); if (!m.n) return '';
+  const m = trkKhoMatch(e.tpa, e.officialLetter, e.tpc); if (!m.n) return '';
   const pd = trkPendSet(e), rows = DB.claims.rows.filter(c => c.profile === e.tpa && m.notes.has(c.note));
   const isPd = c => pd.has(claimKey(c.claimNo)) || pd.has(claimKey(c.claimNo) + 'A'); rows.sort((x, y) => isPd(y) - isPd(x));
   return dataTable(['Số HSBT TPA', 'Người được bảo hiểm', 'Số HĐ', 'Số tiền DPBT'], rows.slice(0, 300).map(c => `<tr${isPd(c) ? ' class="pdrow" title="Đang pending"' : ''}><td>${esc(c.claimNo)}</td><td>${esc(c.insured)}</td><td class="hd">${esc(c.policyNo || '')}</td><td class="num">${money(numAmount(c.amount))}</td></tr>`))
     + (rows.length > 300 ? `<p class="mut sm">Hiện 300/${rows.length} hồ sơ. Bấm Công văn trên bảng Theo dõi để xem đủ bên Tìm kiếm.</p>` : '');
 }
 function trkKhoHTML(e) {
-  const m = trkKhoMatch(e.tpa, e.officialLetter), n = m.n, sum = m.sum;
+  const m = trkKhoMatch(e.tpa, e.officialLetter, e.tpc), n = m.n, sum = m.sum;
   if (!n) return '<span class="mut">Kho hồ sơ:</span> <b>chưa có</b>';
   const cc = Math.round(Number(e.caseCount) || 0), am = numAmount(e.amount);
   const lc = cc > 0 && cc !== n, la = am > 0 && Math.abs(am - sum) > 1;
@@ -1435,7 +1440,9 @@ ACT.trkSave = async () => {
   { const g = cvTpaWarn(e.officialLetter, e.tpa); if (g && !await confirmBox({ title: 'Công văn không đúng mẫu TPA?', msg: `Công văn "${String(e.officialLetter).trim()}" giống mẫu ${g} nhưng đợt đang chọn ${e.tpa}.`, okText: 'Vẫn lưu', cancelText: 'Sửa lại', danger: false })) return; }
   if (!String(e.officialLetter || '').trim() && !await confirmBox({ title: 'Chưa nhập Công văn, vẫn lưu?', msg: 'Đợt hồ sơ này chưa có Công văn.', okText: 'Vẫn lưu', cancelText: 'Quay lại', danger: false })) return;
   const row = cleanTracker({ id: e.id || uid(), receivedDate: rd, tpa: e.tpa, officialLetter: String(e.officialLetter || '').trim(), amount: e.amount, caseCount: e.caseCount, status: e.status, tpc: e.tpc, enteredDate: dates.enteredDate, accountingDate: dates.accountingDate, paymentNote: trkPendNote(e.paymentNote, trkKeepPend(e)), pending: trkKeepPend(e), pendHist: trkKeepHist(e), ...(e.dcCheck ? { dcCheck: e.dcCheck } : {}), createdAt: e.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
-  if (!e.id) { const k = trkDupKey(row); if (DB.tracker.rows.some(r => trkDupKey(r) === k)) return alert('Đợt hồ sơ này đã có trong danh sách.'); DB.tracker.rows.push(row); }
+  if (!e.id) { const k = trkDupKey(row); if (DB.tracker.rows.some(r => trkDupKey(r) === k)) return alert('Đợt hồ sơ này đã có trong danh sách.'); }
+  { const same = trkSameBatch(row); if (same.length && !await confirmBox({ title: 'Có thể trùng đợt?', msg: `Đã có ${same.length > 1 ? same.length + ' đợt' : 'đợt'} cùng Công văn: ${same.slice(0, 3).map(trkBatchLabel).join('; ')}. Ní có chắc đây là đợt khác?`, okText: 'Vẫn lưu', cancelText: 'Sửa lại', danger: false })) return; }
+  if (!e.id) DB.tracker.rows.push(row);
   else { const i = DB.tracker.rows.findIndex(r => r.id === e.id); if (i >= 0) DB.tracker.rows[i] = row; }
   touch('tracker'); closeModal(); renderBody();
   if (row.status !== e.status) toast(`${trkWhy(row)} nên trạng thái lưu là ${row.status}.`, 'note'); else toast('Đã lưu đợt hồ sơ');
@@ -1542,7 +1549,7 @@ ACT.trkDoImp = async () => {
   }
   if (hi < 0) return alert('Không tìm thấy dòng tiêu đề có Ngày nhận, Công văn, TPA trong 40 dòng đầu.');
   const get = (r, k) => map[k] === undefined ? '' : r[map[k]];
-  const have = new Set(DB.tracker.rows.map(trkDupKey)); let add = 0, dup = 0, moved = 0; const noDate = [], noTpa = [], badTpa = [], errRows = [], tpaWarn = [];
+  const have = new Set(DB.tracker.rows.map(trkDupKey)); let add = 0, dup = 0, moved = 0; const noDate = [], noTpa = [], badTpa = [], errRows = [], tpaWarn = [], sameWarn = [];
   const bad = (r, i, why, list) => { list.push(i); errRows.push([i, why, ...[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(c => r[c] == null ? '' : String(r[c]))]); };
   sh.rows.slice(hi + 1).forEach((r, idx) => {
     if (!r || !r.some(c => String(c == null ? '' : c).trim() !== '')) return;
@@ -1555,16 +1562,19 @@ ACT.trkDoImp = async () => {
     const ent = dcell('enteredDate', 'Ngày nhập HS'), acc = dcell('accountingDate', 'Ngày chuyển KT'); if (strange.length) moved++;
     const note0 = String(get(r, 'paymentNote') == null ? '' : get(r, 'paymentNote')).replace(/_x000d_/gi, '').trim(), note = [note0, ...strange].filter(Boolean).join('\n');
     const row = cleanTracker({ id: uid(), receivedDate: rd, officialLetter: String(get(r, 'officialLetter')).trim(), amount: numAmount(get(r, 'amount')), caseCount: get(r, 'caseCount'), tpc: tv !== '' && !['KHONG', 'NO', 'FALSE', '0'].includes(tv), tpa, enteredDate: ent, accountingDate: acc, paymentNote: note, status: String(get(r, 'status') || '').trim(), createdAt: now, updatedAt: now });
-    const k = trkDupKey(row); if (have.has(k)) { dup++; return; } have.add(k); DB.tracker.rows.push(row); add++;
+    const k = trkDupKey(row); if (have.has(k)) { dup++; return; } have.add(k);
+    { const same = trkSameBatch(row); if (same.length) sameWarn.push(`Dòng ${line}: ${row.officialLetter}${row.tpc ? ' · TPC' : ''} – đã có ${same.slice(0, 2).map(trkBatchLabel).join('; ')}`); }
+    DB.tracker.rows.push(row); add++;
     const g = cvTpaWarn(row.officialLetter, row.tpa); if (g) tpaWarn.push(`Dòng ${line}: ${row.officialLetter} – đang chọn ${row.tpa}, giống mẫu ${g}`);
   });
   if (add) touch('tracker');
   const nErr = errRows.length, line = (n, t) => n ? `<li>${n} dòng ${t}</li>` : '';
   const warnHTML = tpaWarn.length ? `<p class="warn2" style="margin-top:10px"><b>${tpaWarn.length}</b> đợt có Công văn không đúng mẫu TPA, ní kiểm tra lại:</p><ul class="sm">${tpaWarn.slice(0, 50).map(x => `<li>${esc(x)}</li>`).join('')}${tpaWarn.length > 50 ? `<li>… và ${tpaWarn.length - 50} đợt khác</li>` : ''}</ul>` : '';
-  if (!nErr && tpaWarn.length) { renderBody(); return modal(`<h3>Kết quả nhập Excel</h3><p>Đã nhập <b>${add}</b> đợt, bỏ qua <b>${dup}</b> dòng trùng.</p>${warnHTML}<div class="act"><span class="sp"></span><button class="btn pri" data-act="close">Đóng</button></div>`); }
+  const sameHTML = sameWarn.length ? `<p class="warn2" style="margin-top:10px"><b>${sameWarn.length}</b> đợt có thể trùng với đợt đã có (cùng TPA, TPC, Công văn), ní kiểm tra lại:</p><ul class="sm">${sameWarn.slice(0, 50).map(x => `<li>${esc(x)}</li>`).join('')}${sameWarn.length > 50 ? `<li>… và ${sameWarn.length - 50} đợt khác</li>` : ''}</ul>` : '';
+  if (!nErr && (tpaWarn.length || sameWarn.length)) { renderBody(); return modal(`<h3>Kết quả nhập Excel</h3><p>Đã nhập <b>${add}</b> đợt, bỏ qua <b>${dup}</b> dòng trùng.</p>${warnHTML}${sameHTML}<div class="act"><span class="sp"></span><button class="btn pri" data-act="close">Đóng</button></div>`); }
   if (!nErr) { closeModal(); renderBody(); return toast(`Đã nhập ${add} đợt, bỏ qua ${dup} dòng trùng.` + (moved ? ` ${moved} đợt có chữ lạ ở ô ngày đã chuyển sang Ghi chú.` : '')); }
   S._trkErr = errRows; renderBody();
-  modal(`<h3>Kết quả nhập Excel</h3><p>Đã nhập <b>${add}</b> đợt, bỏ qua <b>${dup}</b> dòng trùng, <b>${nErr}</b> dòng lỗi:</p><ul>${line(noDate.length, 'thiếu hoặc sai Ngày nhận')}${line(noTpa.length, 'thiếu TPA')}${line(badTpa.length, 'sai TPA')}</ul>${moved ? `<p class="mut sm">${moved} đợt có chữ lạ ở ô ngày đã được chuyển sang Ghi chú.</p>` : ''}${warnHTML}
+  modal(`<h3>Kết quả nhập Excel</h3><p>Đã nhập <b>${add}</b> đợt, bỏ qua <b>${dup}</b> dòng trùng, <b>${nErr}</b> dòng lỗi:</p><ul>${line(noDate.length, 'thiếu hoặc sai Ngày nhận')}${line(noTpa.length, 'thiếu TPA')}${line(badTpa.length, 'sai TPA')}</ul>${moved ? `<p class="mut sm">${moved} đợt có chữ lạ ở ô ngày đã được chuyển sang Ghi chú.</p>` : ''}${warnHTML}${sameHTML}
   <div class="act"><button class="btn" data-act="trkErrDl">Tải file dòng lỗi</button><span class="sp"></span><button class="btn pri" data-act="close">Đóng</button></div>`);
 };
 ACT.trkErrDl = () => {
@@ -1750,7 +1760,7 @@ function claimFilter(f) {
   const ext = [['cccd', 'identityNo', 'bCccd'], ['dob', 'dob', 'bDob'], ['benefit', 'benefit', 'bBenefit'], ['diagnosis', 'diagnosis', 'bDiagnosis'], ['provider', 'provider', 'bProvider']]
     .filter(([k, , b]) => f[b] || f[k]).map(([k, fld, b]) => [fld, !!f[b], f[b] ? '' : noAccent(f[k])]);
   let trkOk = null;
-  if (f.trk) { const m = trkKhoMatch(f.trk.tpa, f.trk.cv); trkOk = r => r.profile === f.trk.tpa && m.notes.has(r.note); }
+  if (f.trk) { const m = trkKhoMatch(f.trk.tpa, f.trk.cv, f.trk.tpc); trkOk = r => r.profile === f.trk.tpa && m.notes.has(r.note); }
   return r => {
     if (trkOk && !trkOk(r)) return false;
     if (q.claimNo && !normSearch(r.claimNo).includes(q.claimNo)) return false; if (q.policyNo && !normSearch(r.policyNo).includes(q.policyNo)) return false; if (q.note && !normSearch(r.note).includes(q.note)) return false;
@@ -1807,7 +1817,7 @@ RENDER.search = () => {
   <select class="in" data-k="search.f.tpa">${optHTML(TPAS, f.tpa, 'Tất cả TPA')}</select><input class="in" data-k="search.f.note" placeholder="Ghi chú" value="${esc(f.note)}">
   <input class="in" style="width:100px" data-k="search.f.day" placeholder="Ngày upload" value="${esc(f.day)}"><input class="in" style="width:110px" data-k="search.f.month" placeholder="Tháng upload" value="${esc(f.month)}"><input class="in" style="width:170px" data-k="search.f.year" placeholder="Năm upload, ví dụ 2026" value="${esc(f.year)}">
   <button class="btn" data-act="srExpand">${s.expanded ? 'Thu gọn ▴' : 'Mở rộng ▾'}</button></div>
-  ${f.trk ? `<div class="trkchip">Đang xem theo đợt: ${esc(f.trk.tpa)} · ${esc(f.trk.cv)} <button data-act="srTrkOff" title="Bỏ lọc theo đợt">✕</button></div>` : ''}
+  ${f.trk ? `<div class="trkchip">Đang xem theo đợt: ${esc(f.trk.tpa)} · ${esc(f.trk.cv)}${f.trk.tpc ? ' · TPC' : ''} <button data-act="srTrkOff" title="Bỏ lọc theo đợt">✕</button></div>` : ''}
   ${s.expanded ? `<div class="bar ex">${ext('cccd', 'bCccd', 'CCCD')}${ext('dob', 'bDob', 'DOB')}${ext('benefit', 'bBenefit', 'Hình thức điều trị')}${ext('diagnosis', 'bDiagnosis', 'Chẩn đoán')}${ext('provider', 'bProvider', 'Cơ sở y tế')}</div>` : ''}
   <div class="bar"><button class="btn" data-act="srClear">Xóa lọc</button><button class="btn" data-act="srAddTrk">Thêm đợt HS</button><button class="btn" data-act="srImpTrk">Nhập Excel đợt HS</button><button class="btn" data-act="srImpOld">Nhập hồ sơ cũ (Excel)</button><button class="btn" data-act="srExp">Xuất Excel đẹp</button></div></div>
   ${s.applied ? `<div class="mini"><span>Tổng hồ sơ <b>${rows.length}</b></span><span>Tổng tiền DPBT <b>${money(rows.reduce((t, r) => t + numAmount(r.amount), 0))}</b></span><span class="mut">Nguồn: Chuyển đổi DPBT</span><span class="sp"></span><span class="mut">Đã chọn ${selN}</span><button class="btn" data-act="srEditSel"${selN === 1 ? '' : ' disabled'}>Sửa hồ sơ đã chọn</button><button class="btn dng" data-act="srDelSel"${selN ? '' : ' disabled'}>Xóa hồ sơ đã chọn</button></div>
@@ -2345,7 +2355,7 @@ ACT.convGo = async () => {
       let ordN = 0; for (const r of fresh) { const row = { id: uid(), claimNo: r.claimNo, policyNo: r.policyNo, insured: r.insured, identityNo: r.identity, dob: r.dobText, note: nn.note, profile, amount: r.amount, reserveDate: dateISO, lossDate: r.lossText, provider: r.provider, benefit: r.benefit, diagnosis: r.diagnosis, customerCode: r.customerCode, contractName: r.contractName, unitCode: r.unitCode, roomCode: roomOf(r.unitCode), sourceFile: c.file.name.slice(0, 220), createdAt: now, recordYear: +vnYear(), ord: ++ordN }; DB.claims.rows.push(row); addClaimIdx(row); added.push(row); }
       touch('claims'); msgs.push({ t: `Đã lưu thành công ${added.length} hồ sơ vào Tìm kiếm hồ sơ.`, cls: 'res-ok' });
       const done = trkCompleteFromClaims(added); if (done) msgs.push({ t: `Theo dõi HS TPA: ${done} đợt đã chuyển KT được chuyển sang Hoàn thành theo ghi chú.` });
-      msgs.push({ t: linkMsg(trkLinkDpbt({ tpa: profile, linkDate: dateISO, texts: nn.note === nnTpl ? [nn.note] : [nn.note, nnTpl], companies: [...new Set(added.map(r => r.contractName))], caseCount: added.length, amount: added.reduce((s, r) => s + r.amount, 0) })) });
+      msgs.push({ t: linkMsg(trkLinkDpbt({ tpa: profile, tpc: !!c.tpc, linkDate: dateISO, texts: nn.note === nnTpl ? [nn.note] : [nn.note, nnTpl], companies: [...new Set(added.map(r => r.contractName))], caseCount: added.length, amount: added.reduce((s, r) => s + r.amount, 0) })) });
     } else msgs.push({ t: 'Không có hồ sơ mới để lưu (tất cả đều trùng hoàn toàn).' });
   }
   c.result = res; c.confirmSig = ''; renderBody();
@@ -2429,8 +2439,9 @@ function fxReadErr(rows, fullKeys) {
 function fxMatch(tpa, note) {
   if (!note) return { err: 'Nhóm này không có Ghi chú nên không dò được đợt.' };
   let best = [], bs = 0;
-  for (const t of DB.tracker.rows) { if (t.tpa !== tpa) continue; const sc = trkScore(tpa, note, t.officialLetter); if (sc < trkNeed(tpa)) continue; if (sc > bs) { best = [t]; bs = sc; } else if (sc === bs) best.push(t); }
-  if (!best.length) return { none: true, err: `Không dò ra đợt nào bên Theo dõi HS TPA khớp "${note}" (${tpa}). Ní kiểm tra lại Công văn của đợt nha.` };
+  const tpc = isTpcNote(note);
+  for (const t of DB.tracker.rows) { if (t.tpa !== tpa || !!t.tpc !== tpc) continue; const sc = trkScore(tpa, note, t.officialLetter); if (sc < trkNeed(tpa)) continue; if (sc > bs) { best = [t]; bs = sc; } else if (sc === bs) best.push(t); }
+  if (!best.length) return { none: true, err: `Không dò ra đợt ${tpc ? 'TPC' : 'thường'} nào bên Theo dõi HS TPA khớp "${note}" (${tpa}). Ní kiểm tra lại Công văn của đợt nha.` };
   if (best.length > 1) return { err: `Dò ra ${best.length} đợt cùng khớp "${note}": ${best.map(t => `${t.officialLetter} (nhận ${fmtVN(t.receivedDate)})`).join('; ')}. Ní kiểm tra lại cho rõ rồi tick lại nha.` };
   return { row: best[0] };
 }
@@ -2892,7 +2903,7 @@ ACT.bkGo = async () => {
   b.result = { msgs, name, u8: XL.write([sheet]) };
   msgs.push({ t: `Đã tạo bảng kê ${N} hồ sơ, tổng ${money(total)} đồng.`, cls: 'res-ok' });
   try {
-    const lk = trkLinkBangke({ tpa: b.profile, linkDate: todayISO(), texts: [...(b.profile === 'PPY' ? [`${ppyNum(b.cv)}-${String(b.year).trim()}`] : []), info, ...(b.infoMan != null ? [String(b.infoMan)] : []), b.file.name], companies: cO >= 0 ? [...new Set(rows.map(r => cellText(r[cO])).filter(Boolean))] : [], caseCount: N, amount: total });
+    const lk = trkLinkBangke({ tpa: b.profile, tpc: !!b.tpc, linkDate: todayISO(), texts: [...(b.profile === 'PPY' ? [`${ppyNum(b.cv)}-${String(b.year).trim()}`] : []), info, ...(b.infoMan != null ? [String(b.infoMan)] : []), b.file.name], companies: cO >= 0 ? [...new Set(rows.map(r => cellText(r[cO])).filter(Boolean))] : [], caseCount: N, amount: total });
     const m = linkMsg(lk); if (m) msgs.push({ t: m });
   } catch (e) { msgs.push({ t: 'Không liên kết được Theo dõi HS TPA: ' + e.message }); }
   renderBody();
@@ -3020,7 +3031,7 @@ ACT.dnGo = async () => {
   const p = d.profile, tx = content === contentTpl ? [content, d.file.name] : [content, contentTpl, d.file.name];
   if (p === 'PPY') tx.unshift(`GD ${ppyNum(d.cv)}-${String(d.year).trim()} THANG ${String(d.month).trim()} DOT ${String(d.dot).trim()}`);
   if (p === 'FHVI') tx.unshift('GD ' + fhviNorm(String(d.gd || '').replace(/^\s*GD\s*/i, '')));
-  try { msgs.push(trkLinkDntt({ tpa: p, date: td, texts: tx, count: t.n || 0, amount: t.total })); } catch (e) { msgs.push({ t: 'Chưa cập nhật được Theo dõi HS TPA: ' + e.message, cls: 'warn2' }); }
+  try { msgs.push(trkLinkDntt({ tpa: p, tpc: !!d.tpc, date: td, texts: tx, count: t.n || 0, amount: t.total })); } catch (e) { msgs.push({ t: 'Chưa cập nhật được Theo dõi HS TPA: ' + e.message, cls: 'warn2' }); }
   renderBody();
 };
 
