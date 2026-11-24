@@ -226,6 +226,117 @@ nav{overflow-y:auto;min-height:0;flex:1}@media(max-height:860px){.nav{padding:5p
 .grph .gtpa.t-FHVI{background:var(--t-FHVI)}.grph .gtpa.t-INS{background:var(--t-INS)}.grph .gtpa.t-PPY{background:var(--t-PPY)}.grph .gtpa.t-FPTIS{background:var(--t-FPTIS);color:#1a2e05}
 .grph .gname{color:#ffc933}:root[data-theme=light] .grph .gname{color:#b7791f}
 .grph .gcnt{margin-left:2px;padding:2px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:12px}.grph .gcnt b{font-size:13px}
+
+/* ===================== Giao diện Meniscus (dựng trên nền tối) ===================== */
+.mn-bead,.mn-kick{display:none}
+.thp{display:inline-flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--card2)}
+.thb{display:none;height:30px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--mut);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.thb.on{display:inline-block;background:var(--pri);color:#fff;font-weight:600}
+.thp:hover .thb,.thp:focus-within .thb{display:inline-block}.thb:hover{color:var(--fg)}.thb.on:hover{color:#fff}
+:root[data-theme=dark].mn{--bg:#070b16;--side:transparent;--card:rgba(16,24,48,.8);--card2:rgba(12,19,40,.82);--line:rgba(255,255,255,.1);--inp:#0a1124;--mut:#8a9bc0}
+:root[data-theme=dark].mn.hasbg{--card:rgba(16,24,48,.8);--card2:rgba(12,19,40,.82)}
+:root.mn.hasbg main::before,:root.mn.hasbg main::after{display:none}
+:root.mn body{background:radial-gradient(900px 620px at 30% -14%,var(--glow),transparent 70%),#070b16}
+:root.mn .side{background:transparent;border-right:0}
+:root.mn nav{position:relative;overflow:visible;flex:0 0 auto;margin-left:16px;padding:8px 6px 8px 0;gap:2px;background:linear-gradient(180deg,rgba(20,30,58,.72),rgba(12,19,40,.72));border:1px solid rgba(255,255,255,.08);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 60px rgba(0,0,0,.35)}
+:root.mn .grp-t{display:none}
+:root.mn .nav{gap:20px;padding:9px 10px 9px 0;color:#c9d5ee;border-radius:12px;transition:color .25s}
+:root.mn .nav:hover{background:rgba(255,255,255,.04)}
+:root.mn .nav.on,:root.mn .layout.col .nav.on{background:transparent;box-shadow:none;color:var(--pri);font-weight:700}
+:root.mn .nav .ico{background:transparent;color:#8a9bc0;transition:opacity .25s}
+:root.mn .nav.on .ico{opacity:0}
+:root.mn .layout.col nav{margin-left:8px;padding:8px 4px}
+:root.mn .mn-bead{display:grid;place-items:center;position:absolute;left:0;top:0;width:42px;height:42px;border-radius:50%;background:var(--pri);color:#0b1020;box-shadow:0 0 0 7px #070b16,0 0 0 8px rgba(255,255,255,.08),0 10px 28px var(--glow2);cursor:grab;z-index:3;touch-action:none;transition:transform .45s cubic-bezier(.34,1.56,.64,1),background-color .35s,opacity .2s;will-change:transform}
+:root.mn .mn-bead.drag{transition:background-color .2s;cursor:grabbing}
+:root.mn .mn-bead svg{width:20px;height:20px;stroke-width:2.2}
+:root.mn .ttl{display:flex;flex-direction:column;gap:4px;min-width:0}
+:root.mn .mn-kick{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.18em;color:#8a9bc0}
+:root.mn .mn-kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pri);box-shadow:0 0 10px var(--pri)}
+:root.mn .top h2{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.05;color:#f3f6fc}
+:root.mn .layout.fit .top h2,:root.mn .layout[data-tab=xl] .top h2{font-size:22px}
+:root.mn .layout.fit .mn-kick,:root.mn .layout[data-tab=xl] .mn-kick{display:none}
+:root.mn .btn.pri,:root.mn .xlh .sn,:root.mn .tpcb,:root.mn .seg button.on,:root.mn .step.on .sn,:root.mn .grph .gtpa,:root.mn .thb.on,:root.mn .thb.on:hover{color:#0b1020}
+:root.mn .tw.sr th,:root.mn .tw.trk th{background:#0f1834}
+:root[data-theme=dark].mn :is(#cfm,#alb) .cfc{background:#101830;color:var(--fg);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:24px 26px;box-shadow:0 26px 70px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.03);animation:mnpop .25s ease}
+:root[data-theme=dark].mn :is(#cfm,#alb) .cfc::before,:root[data-theme=dark].mn :is(#cfm,#alb) .cfc::after{display:none}
+:root[data-theme=dark].mn :is(#cfm,#alb) h4{color:#f3f6fc;font:800 18px "Segoe UI",system-ui,sans-serif;border-bottom:2px solid var(--pri)}
+:root[data-theme=dark].mn :is(#cfm,#alb) p{color:var(--fg);font-weight:500}:root[data-theme=dark].mn :is(#cfm,#alb) .cfn{color:var(--mut)}
+:root[data-theme=dark].mn :is(#cfm,#alb) .btn.c-sub{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:var(--fg)}
+:root[data-theme=dark].mn :is(#cfm,#alb) .in{background:var(--inp);color:var(--fg);border-color:rgba(255,255,255,.14)}
+:root[data-theme=dark].mn :is(#cfm,#alb).closing{animation:cfout .25s ease forwards}:root[data-theme=dark].mn :is(#cfm,#alb).closing .cfc{animation:mnout .25s ease forwards}
+@keyframes mnpop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes mnout{to{opacity:0;transform:translateY(6px) scale(.98)}}
+@media (prefers-reduced-motion:reduce){:root.mn .mn-bead{transition:none}}
+
+/* ===================== Thành phần chung: viên thuốc, menu ⋯, ô thả file ===================== */
+.sgp{position:relative;display:inline-flex;flex-wrap:nowrap;align-items:center;gap:0;max-width:100%;overflow-x:auto;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--inp);vertical-align:middle;scrollbar-width:none}
+.sgp::-webkit-scrollbar{display:none}
+.sgi{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:999px;background:var(--pri);opacity:0;pointer-events:none;transition:transform .42s cubic-bezier(.34,1.56,.64,1),width .42s cubic-bezier(.34,1.56,.64,1),opacity .2s}
+.sgo{position:relative;z-index:1;flex:none;height:32px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--fg);font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:color .25s}
+.sgo:hover{color:var(--pri)}.sgo.on,.sgo.on:hover{color:#fff}
+.sgo:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+.fl>.sgp{align-self:flex-start}
+:root.mn .sgi{box-shadow:0 6px 18px var(--glow2)}:root.mn .sgo.on,:root.mn .sgo.on:hover{color:#0b1020}
+details.mm{position:relative;display:inline-block}details.mm>summary{list-style:none;display:inline-grid;place-items:center;width:38px;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--card2);color:var(--fg);font-size:18px;font-weight:800;line-height:1;cursor:pointer;user-select:none}
+details.mm>summary::-webkit-details-marker{display:none}details.mm>summary:hover,details.mm[open]>summary{border-color:var(--pri);color:var(--pri)}
+.mmp{position:absolute;right:0;top:44px;z-index:30;min-width:230px;display:flex;flex-direction:column;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--card);box-shadow:0 20px 50px rgba(0,0,0,.45)}
+:root.mn .mmp{background:#101830;border-color:rgba(255,255,255,.12)}
+.mmi{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--fg);font:inherit;font-size:13px;text-align:left;cursor:pointer;white-space:nowrap}
+.mmi:hover{background:var(--card2)}.mmi.danger{color:var(--bad);font-weight:600}.mmsep{height:1px;background:var(--line);margin:4px 6px}
+.dzw{position:relative;min-width:0}
+.filebtn.dz{height:auto;min-height:62px;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;padding:9px 40px 9px 14px;border-style:dashed;border-width:1.5px;overflow:hidden}
+.filebtn.dz .dzn{font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filebtn.dz .dzi{font-size:11px;color:var(--mut);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filebtn.dz .dzi.warn{color:var(--warn);font-weight:600;white-space:normal}
+.filebtn.dz.has{border-color:color-mix(in srgb,var(--pri) 60%,transparent)}.filebtn.dz.over{border-color:var(--pri);background:color-mix(in srgb,var(--pri) 10%,var(--inp))}
+.dzx{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;border:0;background:rgba(127,127,127,.18);color:var(--fg);font:inherit;font-size:14px;line-height:1;cursor:pointer}
+.dzx:hover{background:var(--bad);color:#fff}
+@media (prefers-reduced-motion:reduce){.sgi{transition:none}}
+
+.mini.mtl{padding:0;border:0;background:transparent;gap:10px}
+.mtl .mt{display:inline-flex;flex-direction:column;gap:1px;min-width:120px;padding:7px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card2);font-size:11.5px;color:var(--mut);line-height:1.25}
+.mtl .mt b{font-size:18px;color:var(--fg);font-variant-numeric:tabular-nums}.mtl .mt:first-child b{color:var(--pri)}
+.xlrow .fl:has(>.sgp){max-width:none;flex:0 0 auto}
+
+.srtop{flex-wrap:wrap}.sbig{position:relative;flex:1 1 340px;min-width:0;display:flex;align-items:center;color:var(--pri)}
+.sbig svg{position:absolute;left:14px;pointer-events:none}.sbig .in{width:100%;height:44px;border-radius:999px;padding:0 16px 0 40px;font-size:14.5px;border-color:color-mix(in srgb,var(--pri) 45%,var(--line))}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.fchips{gap:6px}.fchip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 5px 0 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--pri) 45%,transparent);background:color-mix(in srgb,var(--pri) 12%,transparent);font-size:12px;font-weight:600}
+.fchip button{width:22px;height:22px;border-radius:50%;border:0;background:rgba(127,127,127,.2);color:var(--fg);font:inherit;cursor:pointer;line-height:1}.fchip button:hover{background:var(--bad);color:#fff}
+
+:root.mn .tpa-c{position:relative;overflow:visible}
+:root.mn .tpa-c.on{border-color:var(--pri);background:color-mix(in srgb,var(--pri) 8%,var(--card));box-shadow:0 10px 28px var(--glow)}
+:root.mn .tpa-c.on::before{content:"";position:absolute;left:-7px;top:16px;width:14px;height:14px;border-radius:50%;background:var(--pri);box-shadow:0 0 0 5px #070b16,0 0 12px var(--glow2)}
+
+.xpipe{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:2px 0}
+.xptrack{position:absolute;left:16.67%;right:16.67%;top:24px;height:3px;border-radius:3px;background:var(--line)}
+.xpfill{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--pri);transition:width .5s ease}
+.xpst{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:transparent;color:var(--fg);font:inherit;cursor:pointer}
+.xpd{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--card2);color:var(--mut);font-size:17px;font-weight:800;box-shadow:0 0 0 6px var(--bg),0 0 0 7px var(--line);transition:background-color .35s,color .35s,box-shadow .35s}
+.xpst.cur .xpd{color:var(--pri);box-shadow:0 0 0 6px var(--bg),0 0 0 7px var(--pri)}
+.xpst.done .xpd{background:var(--pri);color:#fff}
+.xpst b{font-size:13.5px}.xpst small{font-size:12px;color:var(--mut);font-weight:600}.xpst.done small{color:var(--pri)}
+.xpst:focus-visible .xpd{outline:2px solid var(--pri);outline-offset:4px}
+:root.mn .xpst.done .xpd{color:#0b1020;box-shadow:0 0 0 6px #070b16,0 0 0 7px var(--pri),0 8px 24px var(--glow2)}:root.mn .xpd{box-shadow:0 0 0 6px #070b16,0 0 0 7px var(--line)}:root.mn .xpst.cur .xpd{box-shadow:0 0 0 6px #070b16,0 0 0 7px var(--pri)}
+@container (max-width:960px){.xpipe{display:none}}
+
+.tfbar{margin-bottom:12px;flex-wrap:nowrap}.tfbar .sgp{flex:0 1 auto}.tfn .sgo{height:34px;padding:0 16px}
+.hlpb{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--fg);font:inherit;font-size:15px;font-weight:800;cursor:pointer}
+.hlpb:hover,.hlpb.on{border-color:var(--pri);color:var(--pri)}
+#body.nohelp .thelp{display:none}
+#body.nohelp .two:has(> div:last-child > .thelp:only-child){grid-template-columns:1fr}
+.panel.rescard{border-color:color-mix(in srgb,var(--pri) 55%,var(--line))}
+
+#body.setpg{display:grid;grid-template-columns:250px minmax(0,1fr);column-gap:18px;align-items:start}
+#body.setpg>.panel,#body.setpg>:not(.settoc){grid-column:2}
+.settoc{grid-column:1;grid-row:1/span 99;position:sticky;top:14px;display:flex;flex-direction:column;gap:2px;padding:8px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.sti{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;padding:9px 12px 9px 18px;border:0;border-radius:10px;background:transparent;color:var(--fg);font:inherit;font-size:13px;text-align:left;cursor:pointer;line-height:1.3}
+.sti:hover{background:var(--card2)}.sti.on{color:var(--pri);font-weight:700;background:color-mix(in srgb,var(--pri) 10%,transparent)}
+.sti small{font-size:11px;color:var(--mut);font-weight:600}.sti small.ok{color:var(--ok)}.sti small.warn{color:var(--warn)}
+.stdot{display:none;position:absolute;left:-5px;top:0;width:10px;height:10px;border-radius:50%;background:var(--pri);transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+:root.mn .settoc{background:linear-gradient(180deg,rgba(20,30,58,.72),rgba(12,19,40,.72));border-color:rgba(255,255,255,.08);padding-left:0}
+:root.mn .stdot{display:block;box-shadow:0 0 0 5px #070b16,0 0 12px var(--glow2)}:root.mn .sti.on{background:transparent}
+@media(max-width:1000px){#body.setpg{display:block}.settoc{position:static;margin-bottom:12px}}
 </style>
 </head>
 <body>
@@ -747,7 +858,7 @@ const val = id => { const e = document.getElementById(id); return e ? e.value : 
 
 function toast(t, kind) {
   const e = $('#toast'); if (!e) return; kind = kind || (/^(lỗi|không|chưa|thiếu|sai|nhập đủ|hãy)/i.test(String(t).trim()) ? 'err' : 'ok');
-  e.className = 'on ' + kind; e.innerHTML = `<span class="ti">${theme() === 'dark' ? TOAST_IC(kind) : (kind === 'err' ? '✕' : kind === 'note' ? 'i' : kind === 'find' ? '⌕' : '✓')}</span><span class="tt">${esc(t)}</span>${kind !== 'ok' ? '<button class="tx" data-act="toastX" aria-label="Đóng">×</button>' : ''}`;
+  e.className = 'on ' + kind; e.innerHTML = `<span class="ti">${isNaruto() ? TOAST_IC(kind) : (kind === 'err' ? '✕' : kind === 'note' ? 'i' : kind === 'find' ? '⌕' : '✓')}</span><span class="tt">${esc(t)}</span>${kind !== 'ok' ? '<button class="tx" data-act="toastX" aria-label="Đóng">×</button>' : ''}`;
   clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), kind !== 'ok' ? 9000 : 4500);
 }
 ACT.toastX = () => { const e = $('#toast'); if (e) e.classList.remove('on'); };
@@ -755,7 +866,7 @@ ACT.toastX = () => { const e = $('#toast'); if (e) e.classList.remove('on'); };
 /* ===================== Hộp thông báo kiểu cuộn giấy (theme tối; theme Sáng giữ hộp mặc định) ===================== */
 const SHURI_SVG = (c, s) => `<svg viewBox="0 0 48 48" width="${s || 22}" height="${s || 22}" aria-hidden="true"><path d="M24 2l5 14 14-5-9 11 11 9-14 1 1 14-8-12-8 12 1-14-14-1 11-9-9-11 14 5z" fill="${c}" stroke="#0a1230" stroke-width="2.5" stroke-linejoin="round"/><circle cx="24" cy="24" r="4.5" fill="#0a1230"/></svg>`;
 const KUNAI_X = `<svg viewBox="0 0 48 48" width="26" height="26" aria-hidden="true"><g stroke="#0a1230" stroke-width="1.6" stroke-linejoin="round"><g transform="rotate(45 24 24)"><path d="M24 4 L28 18 L24 22 L20 18 Z" fill="#ef4444"/><rect x="22" y="22" width="4" height="14" fill="#7f1d1d"/><circle cx="24" cy="40" r="3.5" fill="none" stroke="#ef4444" stroke-width="2"/></g><g transform="rotate(-45 24 24)"><path d="M24 4 L28 18 L24 22 L20 18 Z" fill="#ef4444"/><rect x="22" y="22" width="4" height="14" fill="#7f1d1d"/><circle cx="24" cy="40" r="3.5" fill="none" stroke="#ef4444" stroke-width="2"/></g></g></svg>`;
-const ninjaIco = () => (typeof theme === 'function' && theme() === 'dark') ? SHURI_SVG('#ff7a1a', 22) : '';
+const ninjaIco = () => (typeof isNaruto === 'function' && isNaruto()) ? SHURI_SVG('#ff7a1a', 22) : '';
 const nativeAlert = typeof window !== 'undefined' && window.alert ? window.alert.bind(window) : null;
 const nativePrompt = typeof window !== 'undefined' && window.prompt ? window.prompt.bind(window) : null;
 const ALQ = []; let alBusy = false;
@@ -847,26 +958,71 @@ function btnPaint(root) {
 }
 
 /* ---------- Dựng khung ---------- */
-function theme() { let t = 'dark'; try { t = localStorage.getItem('dpbt-theme') || 'dark'; } catch (e) { /* bỏ qua */ } return t === 'light' ? 'light' : 'dark'; }
-function applyTheme() { document.documentElement.dataset.theme = theme(); }
+/* Giao diện: light (Sáng) · dark (Naruto) · meniscus (dựng trên nền tối). theme() vẫn trả 'light' | 'dark' cho các chỗ đang dùng */
+const THEMES = [['light', 'Sáng'], ['dark', 'Naruto'], ['meniscus', 'Meniscus']];
+function themeName() { let t = 'dark'; try { t = localStorage.getItem('dpbt-theme') || 'dark'; } catch (e) { /* bỏ qua */ } return THEMES.some(x => x[0] === t) ? t : 'dark'; }
+function theme() { return themeName() === 'light' ? 'light' : 'dark'; }
+const isMn = () => themeName() === 'meniscus';
+const isNaruto = () => themeName() === 'dark';
+function applyTheme() { const h = document.documentElement; h.dataset.theme = theme(); h.classList.toggle('mn', isMn()); mnAccent(); }
+/* Meniscus: mỗi mục một màu, màu nhấn cả trang đổi theo mục đang mở */
+const MN_COL = { home: '#f5e6cc', xl: '#ff8a3d', tool: '#a3e635', search: '#38bdf8', hd: '#facc15', trk: '#2dd4bf', set: '#fb7185' };
+const mnRgba = (h, a) => { const n = parseInt(h.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; };
+function mnAccent() {
+  if (typeof document === 'undefined') return; const st = document.documentElement.style, ks = ['--pri', '--pri2', '--glow', '--glow2'];
+  if (!isMn()) { ks.forEach(k => st.removeProperty(k)); return; }
+  const c = MN_COL[(typeof S !== 'undefined' && S.tab) || 'home'] || MN_COL.home;
+  st.setProperty('--pri', c); st.setProperty('--pri2', c); st.setProperty('--glow', mnRgba(c, .2)); st.setProperty('--glow2', mnRgba(c, .45));
+}
+/* Hạt tròn: trượt tới mục đang mở (giữ vị trí cũ để có hiệu ứng trượt), kéo được bằng chuột */
+let MN_POS = null;
+function mnBeadPos(nav, btn) {
+  const ico = btn.querySelector('.ico') || btn, n = nav.getBoundingClientRect(), r = ico.getBoundingClientRect();
+  return { x: Math.round(r.left - n.left + r.width / 2 - 21 - nav.clientLeft), y: Math.round(r.top - n.top + r.height / 2 - 21 - nav.clientTop) };
+}
+function mnSync() {
+  if (typeof document === 'undefined' || !isMn()) return;
+  const nav = document.querySelector('.side nav'), bead = nav && nav.querySelector('.mn-bead'); if (!bead) return;
+  const on = nav.querySelector('.nav.on'); if (!on) { bead.style.opacity = '0'; MN_POS = null; return; }
+  const setIco = b => { const sv = b.querySelector('.ico svg'); bead.innerHTML = sv ? sv.outerHTML : ''; };
+  const place = (p, anim) => { if (!anim) { bead.style.transition = 'none'; bead.style.transform = `translate(${p.x}px,${p.y}px)`; void bead.offsetWidth; bead.style.transition = ''; } else bead.style.transform = `translate(${p.x}px,${p.y}px)`; };
+  const pos = mnBeadPos(nav, on); setIco(on); bead.style.opacity = '1';
+  if (MN_POS && (MN_POS.x !== pos.x || MN_POS.y !== pos.y)) { place(MN_POS, false); requestAnimationFrame(() => place(pos, true)); } else place(pos, false);
+  MN_POS = pos;
+  const items = [...nav.querySelectorAll('.nav[data-v]')];
+  let drag = null;
+  const nearest = y => { let best = null, bd = 1e9; for (const b of items) { const p = mnBeadPos(nav, b), d = Math.abs(p.y - y); if (d < bd) { bd = d; best = b; } } return best; };
+  bead.onpointerdown = e => { e.preventDefault(); try { bead.setPointerCapture(e.pointerId); } catch (_) { /* bỏ qua */ } drag = { y0: e.clientY, p0: MN_POS, tgt: on }; bead.classList.add('drag'); };
+  bead.onpointermove = e => {
+    if (!drag) return; const ys = items.map(b => mnBeadPos(nav, b).y), y = Math.max(Math.min(...ys), Math.min(Math.max(...ys), drag.p0.y + e.clientY - drag.y0));
+    bead.style.transform = `translate(${drag.p0.x}px,${y}px)`; const t = nearest(y);
+    if (t && t !== drag.tgt) { drag.tgt = t; setIco(t); const c = MN_COL[t.dataset.v] || MN_COL.home; bead.style.background = c; items.forEach(b => b.style.color = b === t ? c : ''); }
+  };
+  const end = () => {
+    if (!drag) return; const t = drag.tgt; drag = null; bead.classList.remove('drag'); bead.style.background = ''; items.forEach(b => b.style.color = '');
+    if (t && t.dataset.v !== S.tab) { MN_POS = mnBeadPos(nav, t); ACT.tab(t.dataset.v); } else place(MN_POS, true);
+  };
+  bead.onpointerup = end; bead.onpointercancel = end;
+}
 let LOGO_INTRO = true; /* hiệu ứng logo khi mở app: chỉ chạy 1 lần */
 function renderApp() {
   const app = $('#app');
   if (!dirH || !started) { app.innerHTML = gateHTML(); return; }
   const cur = S.tab === 'set' ? { 1: 'Cài đặt' } : TABLIST.find(t => t[0] === S.tab);
-  const navBtn = id => { const t = TABLIST.find(x => x[0] === id); return `<button class="nav${S.tab === id ? ' on' : ''}" data-act="tab" data-v="${id}" title="${t[1]}"><span class="ico"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${t[2]}"/></svg></span><span class="lbl">${t[1]}</span></button>`; };
-  const html = `<div class="layout${S.collapsed ? ' col' : ''}${FITTABS.includes(S.tab) ? ' fit' : ''}"><aside class="side"><div class="brand" title="Avanki – Claims · TPA"><svg class="logo${LOGO_INTRO ? ' intro' : ''}" viewBox="-12 -6 232 70" role="img" aria-label="Avanki"><defs><linearGradient id="lgSh" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="40" y2="0"><stop offset="0" stop-color="#ffb347" stop-opacity="0"/><stop offset=".5" stop-color="#ffb347" stop-opacity=".95"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/><animateTransform attributeName="gradientTransform" type="translate" values="-60 0;220 0;220 0" keyTimes="0;.16;1" dur="7s" begin="2s" repeatCount="indefinite"/></linearGradient></defs><path class="lg-ink" d="M28 44 C 88 36, 158 34, 214 40 C 158 39, 94 42, 30 49 Z"/><g transform="translate(20 32) rotate(-35) scale(1.25)"><g class="lg-kunai"><path class="lg-blade" d="M0 0 L22 -4 L34 0 L22 4 Z" stroke-width="1.5" stroke-linejoin="round"/><rect class="lg-hdl" x="-16" y="-2.5" width="16" height="5" rx="1.5"/><circle class="lg-ring" cx="-21" cy="0" r="4.5" stroke-width="2"/></g></g><text class="lg-txt" x="60" y="40">Avanki</text><text class="lg-txt lg-shine" x="60" y="40" fill="url(#lgSh)" aria-hidden="true">Avanki</text><text class="lg-sub" x="62" y="60">CLAIMS · TPA</text></svg><svg class="logo-ico" viewBox="0 0 72 72" width="40" height="40" role="img" aria-label="Avanki"><rect x="2" y="2" width="68" height="68" rx="17" fill="#0a1230" stroke="#ff7a1a" stroke-width="3"/><defs><linearGradient id="lgShI" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="22" y2="0"><stop offset="0" stop-color="#ffb347" stop-opacity="0"/><stop offset=".5" stop-color="#ffb347" stop-opacity=".95"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/><animateTransform attributeName="gradientTransform" type="translate" values="-24 0;72 0;72 0" keyTimes="0;.16;1" dur="7s" begin="2s" repeatCount="indefinite"/></linearGradient></defs><g class="li-a"><path class="li-ink" d="M12 54 C 30 48, 50 47, 62 50 C 48 50, 30 52, 13 58 Z" fill="#ff7a1a"/><text x="36" y="48" text-anchor="middle" style="font:800 38px &quot;M PLUS Rounded 1c&quot;,&quot;Arial Rounded MT Bold&quot;,sans-serif" fill="#eef1fb">A</text><text class="lg-shine" x="36" y="48" text-anchor="middle" style="font:800 38px &quot;M PLUS Rounded 1c&quot;,&quot;Arial Rounded MT Bold&quot;,sans-serif" fill="url(#lgShI)" aria-hidden="true">A</text></g></svg></div>
-  <nav>${navBtn('home')}${NAVGROUPS.map(g => `<div class="grp-t">${g[0]}</div>${g[1].map(navBtn).join('')}`).join('')}<div class="grp-t">Thiết lập</div><button class="nav${S.tab === 'set' ? ' on' : ''}" data-act="tab" data-v="set" title="Cài đặt"><span class="ico"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></span><span class="lbl">Cài đặt</span></button></nav>
+  const navBtn = id => { const t = TABLIST.find(x => x[0] === id); return `<button class="nav${S.tab === id ? ' on' : ''}" data-act="tab" data-v="${id}" title="${t[1]}"${S.tab === id ? ' aria-current="page"' : ''}><span class="ico"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${t[2]}"/></svg></span><span class="lbl">${t[1]}</span></button>`; };
+  mnAccent();
+  const html = `<div class="layout${S.collapsed ? ' col' : ''}${FITTABS.includes(S.tab) ? ' fit' : ''}" data-tab="${S.tab}"><aside class="side"><div class="brand" title="Avanki – Claims · TPA"><svg class="logo${LOGO_INTRO ? ' intro' : ''}" viewBox="-12 -6 232 70" role="img" aria-label="Avanki"><defs><linearGradient id="lgSh" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="40" y2="0"><stop offset="0" stop-color="#ffb347" stop-opacity="0"/><stop offset=".5" stop-color="#ffb347" stop-opacity=".95"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/><animateTransform attributeName="gradientTransform" type="translate" values="-60 0;220 0;220 0" keyTimes="0;.16;1" dur="7s" begin="2s" repeatCount="indefinite"/></linearGradient></defs><path class="lg-ink" d="M28 44 C 88 36, 158 34, 214 40 C 158 39, 94 42, 30 49 Z"/><g transform="translate(20 32) rotate(-35) scale(1.25)"><g class="lg-kunai"><path class="lg-blade" d="M0 0 L22 -4 L34 0 L22 4 Z" stroke-width="1.5" stroke-linejoin="round"/><rect class="lg-hdl" x="-16" y="-2.5" width="16" height="5" rx="1.5"/><circle class="lg-ring" cx="-21" cy="0" r="4.5" stroke-width="2"/></g></g><text class="lg-txt" x="60" y="40">Avanki</text><text class="lg-txt lg-shine" x="60" y="40" fill="url(#lgSh)" aria-hidden="true">Avanki</text><text class="lg-sub" x="62" y="60">CLAIMS · TPA</text></svg><svg class="logo-ico" viewBox="0 0 72 72" width="40" height="40" role="img" aria-label="Avanki"><rect x="2" y="2" width="68" height="68" rx="17" fill="#0a1230" stroke="#ff7a1a" stroke-width="3"/><defs><linearGradient id="lgShI" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="22" y2="0"><stop offset="0" stop-color="#ffb347" stop-opacity="0"/><stop offset=".5" stop-color="#ffb347" stop-opacity=".95"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/><animateTransform attributeName="gradientTransform" type="translate" values="-24 0;72 0;72 0" keyTimes="0;.16;1" dur="7s" begin="2s" repeatCount="indefinite"/></linearGradient></defs><g class="li-a"><path class="li-ink" d="M12 54 C 30 48, 50 47, 62 50 C 48 50, 30 52, 13 58 Z" fill="#ff7a1a"/><text x="36" y="48" text-anchor="middle" style="font:800 38px &quot;M PLUS Rounded 1c&quot;,&quot;Arial Rounded MT Bold&quot;,sans-serif" fill="#eef1fb">A</text><text class="lg-shine" x="36" y="48" text-anchor="middle" style="font:800 38px &quot;M PLUS Rounded 1c&quot;,&quot;Arial Rounded MT Bold&quot;,sans-serif" fill="url(#lgShI)" aria-hidden="true">A</text></g></svg></div>
+  <nav>${navBtn('home')}${NAVGROUPS.map(g => `<div class="grp-t">${g[0]}</div>${g[1].map(navBtn).join('')}`).join('')}<div class="grp-t">Thiết lập</div><button class="nav${S.tab === 'set' ? ' on' : ''}" data-act="tab" data-v="set" title="Cài đặt"${S.tab === 'set' ? ' aria-current="page"' : ''}><span class="ico"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></span><span class="lbl">Cài đặt</span></button><div class="mn-bead" aria-hidden="true"></div></nav>
   <div class="sidefoot"><button class="nav" data-act="collapse" title="Thu gọn"><span class="ico">⇆</span><span class="lbl">Thu gọn</span></button><div id="stat" class="stat"></div><div class="appver" title="Phiên bản app">v${APP_VER}</div></div></aside>
-  <main><header class="top"><h2>${esc(cur[1])}</h2><div class="gs"><input id="gs" class="in" placeholder="Tìm nhanh: số hồ sơ, số HĐ, tên…  (Ctrl+K)" data-enter="globalSearch"></div><div class="tools"><button class="chip" data-act="theme">${theme() === 'dark' ? 'Sáng' : 'Naruto'}</button><span class="chip off">Offline</span></div></header><div id="body"></div></main></div>`;
+  <main><header class="top"><div class="ttl"><span class="mn-kick">AVANKI TPA</span><h2>${esc(cur[1])}</h2></div><div class="gs"><input id="gs" class="in" placeholder="Tìm nhanh: số hồ sơ, số HĐ, tên…  (Ctrl+K)" data-enter="globalSearch"></div><div class="tools"><div class="thp" role="group" aria-label="Giao diện: ${esc((THEMES.find(x => x[0] === themeName()) || THEMES[1])[1])}">${THEMES.map(([v, l]) => `<button class="thb${themeName() === v ? ' on' : ''}" data-act="setTheme" data-v="${v}"${themeName() === v ? ' aria-pressed="true"' : ''}>${l}</button>`).join('')}</div><span class="chip off">Offline</span></div></header><div id="body"></div></main></div>`;
   app.innerHTML = html; LOGO_INTRO = false;
-  renderBody();
+  renderBody(); mnSync();
 }
 function renderBody() {
   const b = $('#body'); if (!b) return;
   const y = window.scrollY, xs = (() => { const e = $('.xlw'); return e ? [e.scrollLeft, e.scrollTop] : null; })();
   b.innerHTML = (STEPS.includes(S.tab) ? stepBar() : '') + (S.tab === 'set' ? settingsHTML() : (RENDER[S.tab] ? RENDER[S.tab]() : ''));
-  const hook = AFTER[S.tab]; if (hook) hook(); btnPaint(document.querySelector('.layout') || document);
+  const hook = AFTER[S.tab]; if (hook) hook(); btnPaint(document.querySelector('.layout') || document); uiSync();
   window.scrollTo(0, y);
   if (xs) { const e = $('.xlw'); if (e) { e.scrollLeft = xs[0]; e.scrollTop = xs[1]; } }
 }
@@ -903,7 +1059,8 @@ ACT.tab = v => {
   resetTab(cur);
   S.tab = v; renderApp(); window.scrollTo(0, 0);
 };
-ACT.theme = () => { try { localStorage.setItem('dpbt-theme', theme() === 'dark' ? 'light' : 'dark'); } catch (e) { /* bỏ qua */ } applyTheme(); renderApp(); };
+ACT.theme = () => ACT.setTheme(theme() === 'dark' ? 'light' : 'dark');
+ACT.setTheme = v => { if (!THEMES.some(x => x[0] === v)) return; try { localStorage.setItem('dpbt-theme', v); } catch (e) { /* bỏ qua */ } MN_POS = null; applyTheme(); renderApp(); try { bgApply(); } catch (e) { /* bỏ qua */ } };
 ACT.close = closeModal;
 ACT.collapse = () => { S.collapsed = !S.collapsed; renderApp(); };
 onReload = name => { if (name === 'claims') rebuildClaimIdx(); if (name === 'data') rebuildPolicyIdx(); if (name === 'settings') bgApply(); renderBody(); };
@@ -960,7 +1117,7 @@ function onInput(e) {
 }
 function onChange(e) {
   const t = e.target; if (bindValue(e)) syncShared(t.dataset.k);
-  if (t.type === 'file') { const sp = t.parentElement && t.parentElement.querySelector('span'); if (sp) sp.textContent = t.files[0] ? t.files[0].name : 'Nhập Excel'; }
+  if (t.type === 'file') { const sp = t.parentElement && t.parentElement.querySelector('span'); if (sp) sp.textContent = t.files[0] ? t.files[0].name : 'Nhập Excel'; dzSync(); }
   const k = t.dataset && t.dataset.change; if (k && ACT[k]) ACT[k](t.value, t, e);
   if (t.dataset && (t.dataset.r || t.dataset.change === 'convMode')) renderBody();
   if (S.tab === 'set' && t.type === 'file' && t.dataset.k && typeof tpOnFile === 'function') tpOnFile(t.dataset.k);
@@ -982,7 +1139,7 @@ function onFocusOut(e) {
   if (t.dataset.k) setPath(S, t.dataset.k, t.value);
 }
 /* ===================== Phiên bản & cập nhật (bản online GitHub Pages) ===================== */
-const APP_VER = '2026.11.23-3';
+const APP_VER = '2026.11.24-1';
 const ONLINE = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 let UPD_SHOWN = '';
 async function checkUpdate() {
@@ -1005,6 +1162,10 @@ async function initApp() {
   applyTheme();
   document.addEventListener('click', onClick); document.addEventListener('input', onInput); document.addEventListener('change', onChange);
   document.addEventListener('keydown', onKey); document.addEventListener('focusin', onFocusIn); document.addEventListener('focusout', onFocusOut);
+  document.addEventListener('click', e => { setTimeout(() => document.querySelectorAll('details.mm[open]').forEach(d => { if (!d.contains(e.target) || e.target.closest('.mmi')) d.open = false; }), 0); });
+  document.addEventListener('dragover', e => { if (!e.dataTransfer || ![...(e.dataTransfer.types || [])].includes('Files')) return; e.preventDefault(); const z = e.target.closest && e.target.closest('.filebtn.dz'); document.querySelectorAll('.filebtn.dz.over').forEach(x => { if (x !== z) x.classList.remove('over'); }); if (z) { z.classList.add('over'); e.dataTransfer.dropEffect = 'copy'; } else e.dataTransfer.dropEffect = 'none'; });
+  document.addEventListener('dragleave', e => { const z = e.target.closest && e.target.closest('.filebtn.dz'); if (z && !z.contains(e.relatedTarget)) z.classList.remove('over'); });
+  document.addEventListener('drop', e => { if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return; e.preventDefault(); const z = e.target.closest && e.target.closest('.filebtn.dz'); document.querySelectorAll('.filebtn.dz.over').forEach(x => x.classList.remove('over')); if (z) dzDrop(z, e.dataTransfer.files[0]); });
   window.addEventListener('focus', checkExternal);
   window.addEventListener('resize', () => { clearTimeout(initApp.rt); initApp.rt = setTimeout(() => { if (FITTABS.includes(S.tab)) { fitIter = 0; renderBody(); } }, 150); });
   window.addEventListener('beforeunload', e => { if (anyDirty()) { e.preventDefault(); e.returnValue = ''; } });
@@ -1022,8 +1183,78 @@ const chk = (k, label, r, dis) => `<label class="chk"><input type="checkbox" dat
 function filePick(k, label) {
   const f = getPath(S, k);
   if (!label) return `<label class="filebtn fb38"><input type="file" data-k="${k}" accept=".xls,.xlsx,.xlsm" hidden><span>${f ? esc(f.name) : 'Nhập Excel'}</span></label>`;
-  return `<div class="fl full"><span>${label}</span><label class="filebtn"><input type="file" data-k="${k}" accept=".xls,.xlsx,.xlsm" hidden><span>${f ? esc(f.name) : 'Nhập Excel'}</span></label></div>`;
+  return `<div class="fl full"><span>${label}</span><div class="dzw"><label class="filebtn dz${f ? ' has' : ''}" data-dz="${k}"><input type="file" data-k="${k}" accept=".xls,.xlsx,.xlsm" hidden><span class="dzn">${f ? esc(f.name) : 'Nhập Excel'}</span><small class="dzi">${f ? fileSize(f.size) : 'Kéo thả file vào đây, hoặc bấm để chọn'}</small></label>${f ? `<button type="button" class="dzx" data-act="fileClear" data-v="${k}" aria-label="Bỏ file đang chọn" title="Bỏ file">×</button>` : ''}</div></div>`;
 }
+/* ---------- Viên thuốc chọn 1 (segmented) có chỉ báo trượt ---------- */
+function segHTML(k, opts, cur, o) {
+  o = o || {}; const list = opts.map(x => Array.isArray(x) ? x : [x, x]);
+  return `<div class="sgp" data-sg="${k}" role="radiogroup"${o.label ? ` aria-label="${esc(o.label)}"` : ''}><span class="sgi" aria-hidden="true"></span>${list.map(([v, l]) => { const on = String(cur == null ? '' : cur) === String(v); return `<button type="button" class="sgo${on ? ' on' : ''}" role="radio" aria-checked="${on}" data-act="sgPick" data-v="${esc(v)}" data-sk="${k}"${o.r ? ' data-sr="1"' : ''}${o.change ? ` data-sc="${o.change}"` : ''}>${esc(l)}</button>`; }).join('')}</div>`;
+}
+const SG_POS = {};
+function sgSync() {
+  if (typeof document === 'undefined') return;
+  document.querySelectorAll('.sgp[data-sg]').forEach(g => {
+    const ind = g.querySelector('.sgi'), on = g.querySelector('.sgo.on'), key = g.dataset.sg; if (!ind) return;
+    if (!on) { ind.style.opacity = '0'; delete SG_POS[key]; return; }
+    const p = { x: on.offsetLeft, w: on.offsetWidth }, prev = SG_POS[key], set = q => { ind.style.transform = `translateX(${q.x}px)`; ind.style.width = q.w + 'px'; };
+    ind.style.opacity = '1';
+    if (prev && (prev.x !== p.x || prev.w !== p.w)) { ind.style.transition = 'none'; set(prev); void ind.offsetWidth; ind.style.transition = ''; requestAnimationFrame(() => set(p)); } else { ind.style.transition = 'none'; set(p); void ind.offsetWidth; ind.style.transition = ''; }
+    SG_POS[key] = p;
+  });
+}
+ACT.sgPick = (v, el) => {
+  const k = el.dataset.sk; if (!k) return; setPath(S, k, v); syncShared(k);
+  const c = el.dataset.sc; if (c && ACT[c]) ACT[c](v, el);
+  const tab = autoKey({ dataset: { k } }); if (tab) return autoApply(tab);
+  if (el.dataset.sr) return renderBody();
+  const g = el.closest('.sgp'); if (g) g.querySelectorAll('.sgo').forEach(b => { const on = b === el; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
+  sgSync();
+};
+/* ---------- Menu ⋯ ---------- */
+const mmHTML = (items, label) => `<details class="mm"><summary aria-label="${esc(label || 'Thêm thao tác')}" title="${esc(label || 'Thêm thao tác')}">⋯</summary><div class="mmp">${items}</div></details>`;
+/* ---------- Ô thả file: dung lượng, số sheet, cảnh báo sheet ẩn nằm đầu ---------- */
+const fileSize = n => n == null ? '' : n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(1).replace('.', ',') + ' MB';
+const FINFO = new WeakMap();
+function fileInfo(f) {
+  if (!f || !/\.xls[xm]$/i.test(f.name || '')) return Promise.resolve(null);
+  if (FINFO.has(f)) return FINFO.get(f);
+  const p = (async () => {
+    try {
+      const z = XL.zipRead(await f.arrayBuffer()), wb = String(await z.text('xl/workbook.xml') || '').replace(/<(\/?)[A-Za-z_][\w.-]*:(?=[A-Za-z_])/g, '<$1');
+      const sh = [...wb.matchAll(/<sheet\b([^>]*?)\/?>/g)].map(m => ({ name: (/\bname="([^"]*)"/.exec(m[1]) || [])[1] || '', hidden: /\bstate="(?:hidden|veryHidden)"/.test(m[1]) }));
+      return { n: sh.length, hid: sh.filter(x => x.hidden).length, first: sh[0] || null };
+    } catch (e) { return null; }
+  })();
+  FINFO.set(f, p); return p;
+}
+function dzSync() {
+  if (typeof document === 'undefined') return;
+  document.querySelectorAll('.filebtn.dz[data-dz]').forEach(z => {
+    const k = z.dataset.dz, f = getPath(S, k), n = z.querySelector('.dzn'), i = z.querySelector('.dzi'), w = z.parentElement;
+    z.classList.toggle('has', !!f); if (n) n.textContent = f ? f.name : 'Nhập Excel';
+    let x = w && w.querySelector('.dzx');
+    if (f && !x && w) { x = document.createElement('button'); x.type = 'button'; x.className = 'dzx'; x.dataset.act = 'fileClear'; x.dataset.v = k; x.title = 'Bỏ file'; x.setAttribute('aria-label', 'Bỏ file đang chọn'); x.textContent = '×'; w.appendChild(x); }
+    if (!f && x) x.remove();
+    if (!i) return; i.classList.remove('warn');
+    if (!f) { i.textContent = 'Kéo thả file vào đây, hoặc bấm để chọn'; return; }
+    const auto = (k === 'bk.file' && S.bk.fileAuto === f.name) ? 'Tự đưa từ bước 1 · ' : (k === 'dn.file' && S.dn.fileAuto === f.name) ? 'Tự đưa từ bước 2 · ' : '';
+    i.textContent = auto + fileSize(f.size);
+    fileInfo(f).then(r => {
+      if (!r || getPath(S, k) !== f) return;
+      if (r.first && r.first.hidden) { i.classList.add('warn'); i.textContent = `⚠ ${r.n} sheet, ${r.hid} sheet ẩn · sheet đầu tiên "${r.first.name}" đang ẩn, app sẽ đọc sheet này`; }
+      else i.textContent = `${auto}${fileSize(f.size)} · ${r.n} sheet${r.hid ? ` (${r.hid} ẩn)` : ''}`;
+    });
+  });
+}
+ACT.fileClear = k => { if (!k) return; setPath(S, k, null); syncShared(k); renderBody(); };
+function dzDrop(z, f) {
+  const k = z.dataset.dz; if (!k || !f) return;
+  if (!/\.(xlsx|xlsm|xls)$/i.test(f.name)) return toast('Chỉ nhận file Excel (.xlsx, .xlsm, .xls)', 'err');
+  setPath(S, k, f); syncShared(k);
+  const inp = z.querySelector('input[type=file]'); if (inp && inp.dataset.r) renderBody(); else dzSync();
+  if (S.tab === 'set' && typeof tpOnFile === 'function') tpOnFile(k);
+}
+function uiSync() { sgSync(); dzSync(); }
 function dataTable(head, rows, empty, cls) {
   return `<div class="tw${cls ? ' ' + cls : ''}"><table><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('') || `<tr><td colspan="${head.length}" class="mut">${empty || 'Không có dữ liệu'}</td></tr>`}</tbody></table></div>`;
 }
@@ -1299,12 +1530,12 @@ RENDER.trk = () => {
   <select class="in" data-k="trk.f.month"><option value="">Tháng nhận</option>${[...Array(12)].map((_, i) => `<option value="${i + 1}"${t.f.month == i + 1 ? ' selected' : ''}>Tháng ${i + 1}</option>`).join('')}</select>
   <input class="in" style="width:100px" data-k="trk.f.day" placeholder="Ngày nhận" value="${esc(t.f.day)}">
   <input class="in w1" data-k="trk.f.q" placeholder="Công văn, ghi chú..." value="${esc(t.f.q)}">
-  <select class="in" data-k="trk.f.tpa">${optHTML(TPAS, t.f.tpa, 'Tất cả TPA')}</select>
+  ${segHTML('trk.f.tpa', [['', 'Tất cả'], ...TPAS], t.f.tpa, { label: 'TPA' })}
   <select class="in" data-k="trk.f.status">${optHTML(TRK_ST, t.f.status, 'Tất cả trạng thái')}</select>
-  <select class="in" data-k="trk.f.tpc"><option value="">TPC: Tất cả</option><option value="yes"${t.f.tpc === 'yes' ? ' selected' : ''}>Có TPC</option><option value="no"${t.f.tpc === 'no' ? ' selected' : ''}>Không TPC</option></select>
+  ${segHTML('trk.f.tpc', [['', 'TPC: Tất cả'], ['yes', 'TPC'], ['no', 'Thường']], t.f.tpc, { label: 'TPC' })}
   <button class="btn" data-act="trkClear">Xóa lọc</button><span class="sp"></span>
-  <button class="btn" data-act="trkHol">Quản lý ngày nghỉ · ${(DB.tracker.holidays || []).length}</button><button class="btn" data-act="trkNew">+ Thêm đợt HS</button><button class="btn" data-act="trkImp">Nhập Excel</button><button class="btn" data-act="trkExp">Xuất Excel đẹp</button><button class="btn dng" data-act="trkWipe">Xóa sạch danh sách</button></div></div>
-  <div class="mini"><span>Tổng đợt <b>${all.length}</b></span><span>Tổng HS <b>${money(all.reduce((s, r) => s + r.caseCount, 0))}</b></span><span>Tổng tiền <b>${money(all.reduce((s, r) => s + r.amount, 0))}</b></span><span>Đang theo dõi <b>${all.filter(r => TRK_ACTIVE.includes(r.status)).length}</b></span><span class="mut">${TPAS.map(x => x + ': ' + (tpaCnt[x] || 0)).join(' · ')}</span><span class="sp"></span><span class="mut">${a.all ? 'Kết quả tìm kiếm (gồm cả HS đã hoàn thành)' : 'Đang hiển thị HS chưa hoàn thành'} · <b>${rows.length}</b> đợt</span></div>
+  <button class="btn c-sub" data-act="trkImp">Nhập Excel</button><button class="btn c-sub" data-act="trkExp">Xuất Excel đẹp</button><button class="btn pri" data-nc data-act="trkNew">+ Thêm đợt HS</button>${mmHTML(`<button class="mmi" data-act="trkHol">Quản lý ngày nghỉ · ${(DB.tracker.holidays || []).length}</button><div class="mmsep"></div><button class="mmi danger" data-act="trkWipe">Xóa sạch danh sách…</button>`)}</div></div>
+  <div class="mini mtl"><span class="mt">Tổng đợt <b>${all.length}</b></span><span class="mt">Tổng HS <b>${money(all.reduce((s, r) => s + r.caseCount, 0))}</b></span><span class="mt">Tổng tiền <b>${money(all.reduce((s, r) => s + r.amount, 0))}</b></span><span class="mt">Đang theo dõi <b>${all.filter(r => TRK_ACTIVE.includes(r.status)).length}</b></span><span class="mut">${TPAS.map(x => x + ': ' + (tpaCnt[x] || 0)).join(' · ')}</span><span class="sp"></span><span class="mut">${a.all ? 'Kết quả tìm kiếm (gồm cả HS đã hoàn thành)' : 'Đang hiển thị HS chưa hoàn thành'} · <b>${rows.length}</b> đợt</span></div>
   ${dataTable(['Ngày nhận / Deadline', 'Công văn', 'TPA / Số lượng HS', 'Kho', 'Số tiền', 'TPC', 'Ngày nhập HS', 'Ngày chuyển KT', 'Trạng thái', 'Ghi chú', ''], body, 'Không có đợt hồ sơ', 'trk')}
   <div class="pager"><button class="btn" data-act="trkPg" data-v="-1" ${t.page <= 1 ? 'disabled' : ''}>← Trang trước</button> <span>Trang ${t.page}/${pages}</span> <button class="btn" data-act="trkPg" data-v="1" ${t.page >= pages ? 'disabled' : ''}>Trang sau →</button></div>`;
 };
@@ -1654,7 +1885,7 @@ RENDER.hd = () => {
   return `<div class="panel"><div class="tpa-row">${[...TPAS, ''].map(card).join('')}</div></div>
   <div class="panel" data-scope="hd"><h3>DATA hợp đồng <span class="mut sm">· tổng ${rows.length}</span></h3><div class="bar hdbar">
   <input class="in" data-k="hd.f.policy" placeholder="Lọc Số HĐ" value="${esc(h.f.policy)}"><input class="in w1" data-k="hd.f.name" placeholder="Lọc Tên HĐ" value="${esc(h.f.name)}"><input class="in" data-k="hd.f.period" placeholder="Lọc Hiệu lực" value="${esc(h.f.period)}"><input class="in" data-k="hd.f.group" placeholder="Lọc Group" value="${esc(h.f.group)}">
-  <button class="btn" data-act="hdClear">Xóa tìm kiếm</button>${filePick('hd.dataFile', '')}<button class="btn" data-act="hdUpload">Upload DATA</button><button class="btn" data-act="hdAdd">Thêm dữ liệu</button><button class="btn dng" data-act="hdWipe">Xóa sạch DATA</button></div>
+  <button class="btn c-sub" data-act="hdClear">Xóa tìm kiếm</button><span class="sp"></span><button class="btn c-sub" data-act="hdAdd">+ Thêm dữ liệu</button>${filePick('hd.dataFile', '')}<button class="btn pri" data-nc data-act="hdUpload">Upload DATA</button>${mmHTML('<button class="mmi danger" data-act="hdWipe">Xóa sạch DATA…</button>')}</div>
   <p class="mut sm">File Excel cần sheet <b>DATA</b> (hoặc sheet đầu) có các cột <b>Số HĐ, Mã KH, Tên HĐ, Mã đơn vị</b>; có thể thêm <b>Hiệu lực, TPA, GROUP</b>. Số HĐ đã có thì không thêm lại, chỉ bổ sung GROUP nếu đang trống.</p></div>
   ${hdListHTML()}`;
 };
@@ -1745,7 +1976,7 @@ function expInfo(r) {
 /* ===================== Tìm kiếm hồ sơ (kho hồ sơ đã chuyển đổi) ===================== */
 const srN = () => (S.fit && S.fit.search) || 14;
 const SR_BLANK = ['cccd', 'dob', 'benefit', 'diagnosis', 'provider'];
-const emptySrF = () => ({ claimNo: '', policyNo: '', insured: '', tpa: '', note: '', day: '', month: '', year: '', cccd: '', dob: '', benefit: '', diagnosis: '', provider: '', bCccd: false, bDob: false, bBenefit: false, bDiagnosis: false, bProvider: false });
+const emptySrF = () => ({ q: '', claimNo: '', policyNo: '', insured: '', tpa: '', note: '', day: '', month: '', year: '', cccd: '', dob: '', benefit: '', diagnosis: '', provider: '', bCccd: false, bDob: false, bBenefit: false, bDiagnosis: false, bProvider: false });
 S.search = { f: emptySrF(), expanded: false, applied: null, page: 1, sel: {}, all: false, edit: null };
 /* Ngày upload theo giờ VN (UTC+7, không đổi giờ mùa hè): cộng 7 tiếng thay cho toLocaleDateString(timeZone) vốn rất chậm */
 const vnDate = iso => { const t = Date.parse(iso); return isNaN(t) ? '' : new Date(t + 7 * 3600000).toISOString().slice(0, 10); };
@@ -1756,6 +1987,8 @@ const noAccentM = v => { const s = v == null ? '' : String(v); let o = NA_MEMO.g
 function claimFilter(f) {
   const q = {}; for (const k of ['claimNo', 'policyNo', 'note']) if (f[k]) q[k] = normSearch(f[k]);
   if (f.insured) q.insured = noAccent(f.insured); const tpa = f.tpa ? normalize(f.tpa) : '';
+  /* Ô tìm chung: khớp Số HSBT TPA, Số đơn BH hoặc tên NĐBH */
+  const qs = f.q ? normSearch(f.q) : '', qa = f.q ? noAccent(f.q) : '';
   const day = f.day ? +f.day : 0, month = f.month ? +f.month : 0, year = f.year ? String(f.year).trim() : '', needD = !!(f.day || f.month);
   const ext = [['cccd', 'identityNo', 'bCccd'], ['dob', 'dob', 'bDob'], ['benefit', 'benefit', 'bBenefit'], ['diagnosis', 'diagnosis', 'bDiagnosis'], ['provider', 'provider', 'bProvider']]
     .filter(([k, , b]) => f[b] || f[k]).map(([k, fld, b]) => [fld, !!f[b], f[b] ? '' : noAccent(f[k])]);
@@ -1763,6 +1996,7 @@ function claimFilter(f) {
   if (f.trk) { const m = trkKhoMatch(f.trk.tpa, f.trk.cv, f.trk.tpc); trkOk = r => r.profile === f.trk.tpa && m.notes.has(r.note); }
   return r => {
     if (trkOk && !trkOk(r)) return false;
+    if (qs && !(normSearch(r.claimNo).includes(qs) || normSearch(r.policyNo).includes(qs) || noAccentM(r.insured).includes(qa))) return false;
     if (q.claimNo && !normSearch(r.claimNo).includes(q.claimNo)) return false; if (q.policyNo && !normSearch(r.policyNo).includes(q.policyNo)) return false; if (q.note && !normSearch(r.note).includes(q.note)) return false;
     if (q.insured && !noAccentM(r.insured).includes(q.insured)) return false; if (tpa && normalize(r.profile) !== tpa) return false;
     if (needD || (f.year && !r.recordYear)) {
@@ -1812,19 +2046,26 @@ RENDER.search = () => {
   const banner = s.all ? `<div class="selbn">Đã chọn tất cả <b>${rows.length}</b> hồ sơ theo kết quả tìm kiếm. <a data-act="srUnpick">Bỏ chọn</a></div>` : (pageAll && rows.length > slice.length ? `<div class="selbn">Đã chọn <b>${slice.length}</b> hồ sơ của trang này. <a data-act="srPickAll">Chọn tất cả ${rows.length} hồ sơ theo kết quả tìm kiếm</a></div>` : '');
   S._srSome = pageSome && !pageAll;
   const ext = (k, b, ph) => `<div class="exf"><input class="in" data-k="search.f.${k}" placeholder="${ph}" value="${esc(f[k])}"${f[b] ? ' disabled' : ''}><label class="chk sm"><input type="checkbox" data-k="search.f.${b}" data-r="1"${f[b] ? ' checked' : ''}> Chỉ hồ sơ trống</label></div>`;
-  return `<div class="panel" data-scope="sr"><div class="bar">
-  <input class="in" data-k="search.f.claimNo" placeholder="Số HSBT TPA" value="${esc(f.claimNo)}"><input class="in" data-k="search.f.policyNo" placeholder="Số đơn BH" value="${esc(f.policyNo)}"><input class="in" data-k="search.f.insured" placeholder="Người được bảo hiểm" value="${esc(f.insured)}">
-  <select class="in" data-k="search.f.tpa">${optHTML(TPAS, f.tpa, 'Tất cả TPA')}</select><input class="in" data-k="search.f.note" placeholder="Ghi chú" value="${esc(f.note)}">
-  <input class="in" style="width:100px" data-k="search.f.day" placeholder="Ngày upload" value="${esc(f.day)}"><input class="in" style="width:110px" data-k="search.f.month" placeholder="Tháng upload" value="${esc(f.month)}"><input class="in" style="width:170px" data-k="search.f.year" placeholder="Năm upload, ví dụ 2026" value="${esc(f.year)}">
-  <button class="btn" data-act="srExpand">${s.expanded ? 'Thu gọn ▴' : 'Mở rộng ▾'}</button></div>
+  const CHL = { claimNo: 'Số HSBT TPA', policyNo: 'Số đơn BH', insured: 'NĐBH', note: 'Ghi chú', day: 'Ngày upload', month: 'Tháng upload', year: 'Năm upload', cccd: 'CCCD', dob: 'DOB', benefit: 'Hình thức ĐT', diagnosis: 'Chẩn đoán', provider: 'CSYT' };
+  const BL = { bCccd: 'CCCD trống', bDob: 'DOB trống', bBenefit: 'Hình thức ĐT trống', bDiagnosis: 'Chẩn đoán trống', bProvider: 'CSYT trống' };
+  const chips = s.expanded ? '' : [...Object.entries(CHL).filter(([k]) => String(f[k] || '').trim()).map(([k, l]) => [k, `${l}: ${f[k]}`]), ...Object.entries(BL).filter(([k]) => f[k]).map(([k, l]) => [k, l])]
+    .map(([k, l]) => `<span class="fchip">${esc(l)}<button type="button" data-act="srChipX" data-v="${k}" aria-label="Bỏ lọc ${esc(l)}" title="Bỏ lọc">×</button></span>`).join('');
+  return `<div class="panel" data-scope="sr"><div class="bar srtop">
+  <label class="sbig"><span class="vh">Tìm hồ sơ</span><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input class="in" data-k="search.f.q" placeholder="Số HSBT TPA, số đơn BH, tên NĐBH…" value="${esc(f.q || '')}"></label>
+  ${segHTML('search.f.tpa', [['', 'Tất cả'], ...TPAS], f.tpa, { label: 'TPA' })}
+  <button class="btn c-sub" data-act="srExpand" aria-expanded="${!!s.expanded}">${s.expanded ? 'Lọc thêm ▴' : 'Lọc thêm ▾'}</button></div>
   ${f.trk ? `<div class="trkchip">Đang xem theo đợt: ${esc(f.trk.tpa)} · ${esc(f.trk.cv)}${f.trk.tpc ? ' · TPC' : ''} <button data-act="srTrkOff" title="Bỏ lọc theo đợt">✕</button></div>` : ''}
-  ${s.expanded ? `<div class="bar ex">${ext('cccd', 'bCccd', 'CCCD')}${ext('dob', 'bDob', 'DOB')}${ext('benefit', 'bBenefit', 'Hình thức điều trị')}${ext('diagnosis', 'bDiagnosis', 'Chẩn đoán')}${ext('provider', 'bProvider', 'Cơ sở y tế')}</div>` : ''}
-  <div class="bar"><button class="btn" data-act="srClear">Xóa lọc</button><button class="btn" data-act="srAddTrk">Thêm đợt HS</button><button class="btn" data-act="srImpTrk">Nhập Excel đợt HS</button><button class="btn" data-act="srImpOld">Nhập hồ sơ cũ (Excel)</button><button class="btn" data-act="srExp">Xuất Excel đẹp</button></div></div>
+  ${chips ? `<div class="bar fchips">${chips}</div>` : ''}
+  ${s.expanded ? `<div class="bar ex"><input class="in" data-k="search.f.claimNo" placeholder="Số HSBT TPA" value="${esc(f.claimNo)}"><input class="in" data-k="search.f.policyNo" placeholder="Số đơn BH" value="${esc(f.policyNo)}"><input class="in" data-k="search.f.insured" placeholder="Người được bảo hiểm" value="${esc(f.insured)}"><input class="in" data-k="search.f.note" placeholder="Ghi chú" value="${esc(f.note)}">
+  <input class="in" style="width:100px" data-k="search.f.day" placeholder="Ngày upload" value="${esc(f.day)}"><input class="in" style="width:110px" data-k="search.f.month" placeholder="Tháng upload" value="${esc(f.month)}"><input class="in" style="width:170px" data-k="search.f.year" placeholder="Năm upload, ví dụ 2026" value="${esc(f.year)}"></div>
+  <div class="bar ex">${ext('cccd', 'bCccd', 'CCCD')}${ext('dob', 'bDob', 'DOB')}${ext('benefit', 'bBenefit', 'Hình thức điều trị')}${ext('diagnosis', 'bDiagnosis', 'Chẩn đoán')}${ext('provider', 'bProvider', 'Cơ sở y tế')}</div>` : ''}
+  <div class="bar"><button class="btn c-sub" data-act="srClear">Xóa lọc</button><span class="sp"></span><button class="btn c-sub" data-act="srExp">Xuất Excel đẹp</button>${mmHTML('<button class="mmi" data-act="srAddTrk">Thêm đợt HS</button><button class="mmi" data-act="srImpTrk">Nhập Excel đợt HS</button><button class="mmi" data-act="srImpOld">Nhập hồ sơ cũ (Excel)</button>')}</div></div>
   ${s.applied ? `<div class="mini"><span>Tổng hồ sơ <b>${rows.length}</b></span><span>Tổng tiền DPBT <b>${money(rows.reduce((t, r) => t + numAmount(r.amount), 0))}</b></span><span class="mut">Nguồn: Chuyển đổi DPBT</span><span class="sp"></span><span class="mut">Đã chọn ${selN}</span><button class="btn" data-act="srEditSel"${selN === 1 ? '' : ' disabled'}>Sửa hồ sơ đã chọn</button><button class="btn dng" data-act="srDelSel"${selN ? '' : ' disabled'}>Xóa hồ sơ đã chọn</button></div>
   ${banner || '<div class="selbn ghost">&nbsp;</div>'}
   ${dataTable([`<input type="checkbox" id="srAllCb" data-act="srAll" aria-label="Chọn tất cả hồ sơ trong trang"${pageAll ? ' checked' : ''}>`, ...srCols.map(c => c[0])], slice.map(r => `<tr class="click" data-act="srOpen" data-v="${r.id}"><td><input type="checkbox" data-act="srSel" data-v="${r.id}"${(s.all || s.sel[r.id]) ? ' checked' : ''}></td>${srCols.map(c => { const v = c[2] ? money(c[1](r)) : c[1](r); if (c[0] === 'Ghi chú') { const t = srNoteTrk(r); if (t) return `<td title="${esc(v)}"><a class="ntl" data-act="srNoteTrk" data-v="${t.id}">${esc(v)}</a></td>`; } return `<td${c[2] ? ' class="num"' : c[0] === 'Số HSBT TPA' ? ' class="hs"' : ''} title="${esc(v)}">${esc(v)}</td>`; }).join('')}</tr>`), 'Không có hồ sơ', 'sr')}
   ${pager('sr', s.page, pages, ' <button class="btn" data-act="srReload">Tải lại ⟳</button>')}` : '<div class="info">Nhập điều kiện để lọc. Danh sách này lấy từ các lần "Chuyển đổi & lưu dữ liệu".</div>'}`;
 };
+ACT.srChipX = k => { const f = S.search.f; if (!f || !(k in f)) return; f[k] = typeof f[k] === 'boolean' ? false : ''; autoApply('search'); };
 ACT.srExpand = () => { S.search.expanded = !S.search.expanded; renderBody(); };
 ACT.srFind = () => { S.search.applied = { ...S.search.f }; S.search.page = 1; S.search.sel = {}; S.search.all = false; renderBody(); };
 ACT.srClear = () => { S.search.f = emptySrF(); S.search.applied = null; S.search.sel = {}; S.search.all = false; renderBody(); };
@@ -1932,6 +2173,7 @@ async function bgApply() {
   if (typeof document === 'undefined') return;
   const html = document.documentElement, b = DB.settings && DB.settings.bg;
   if (BG_URL) { try { URL.revokeObjectURL(BG_URL); } catch (e) { /* bỏ qua */ } BG_URL = ''; }
+  if (isMn()) { html.classList.remove('hasbg'); return; }
   if (!b || !b.file || !dirH) { html.classList.remove('hasbg'); return; }
   try { const f = await (await dirH.getFileHandle(b.file)).getFile(); BG_URL = URL.createObjectURL(f); html.style.setProperty('--bgimg', `url("${BG_URL}")`); bgVars(b); html.classList.add('hasbg'); }
   catch (e) { html.classList.remove('hasbg'); }
@@ -1992,9 +2234,37 @@ AFTER.set = () => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'fbtn'; h.appendChild(b);
     const paint = () => { const f = !!st[k]; p.classList.toggle('fold', f); b.textContent = f ? '▸ Mở rộng' : '▾ Thu gọn'; b.title = f ? 'Mở mục này' : 'Thu gọn mục này'; };
     h.addEventListener('click', e => { e.preventDefault(); st[k] = st[k] ? 0 : 1; try { localStorage.setItem('dpbt-setfold', JSON.stringify(st)); } catch (er) {} paint(); });
-    paint();
+    paint(); p._fold = paint; p._fk = k;
   });
+  setToc(st);
 };
+/* Cài đặt: mục lục bên trái, bấm mục nào thì mở và cuộn tới mục đó; có dòng tình trạng cho vài mục */
+let SET_TOC_I = 0;
+function setTocStatus(title) {
+  const t = noAccent(title), st = DB.settings || {};
+  if (/ANH NEN/.test(t)) return st.bg && st.bg.file ? ['Đã có ảnh nền', 'ok'] : ['Chưa có ảnh nền', ''];
+  if (/THU HUONG/.test(t)) { const n = TPAS.filter(x => { const d = (st.dntt || {})[x] || {}; return ['name', 'account', 'bank'].every(f => String(d[f] || '').trim()); }).length; return [`Đủ ${n}/${TPAS.length} TPA`, n === TPAS.length ? 'ok' : 'warn']; }
+  return null;
+}
+function setToc(st) {
+  const body = document.getElementById('body'); if (!body) return;
+  const panels = [...body.querySelectorAll(':scope > .panel')].filter(p => p.querySelector(':scope > h3')); if (panels.length < 3) return;
+  body.classList.add('setpg');
+  let nav = body.querySelector(':scope > .settoc'); if (nav) nav.remove();
+  nav = document.createElement('nav'); nav.className = 'settoc'; nav.setAttribute('aria-label', 'Mục lục cài đặt');
+  const dot = document.createElement('span'); dot.className = 'stdot'; dot.setAttribute('aria-hidden', 'true'); nav.appendChild(dot);
+  if (SET_TOC_I >= panels.length) SET_TOC_I = 0;
+  const moveDot = (anim) => { const b = nav.querySelectorAll('.sti')[SET_TOC_I]; if (!b) return; if (!anim) dot.style.transition = 'none'; dot.style.transform = `translateY(${b.offsetTop + b.offsetHeight / 2 - 5}px)`; if (!anim) { void dot.offsetWidth; dot.style.transition = ''; } nav.querySelectorAll('.sti').forEach((x, j) => { x.classList.toggle('on', j === SET_TOC_I); x.setAttribute('aria-current', j === SET_TOC_I ? 'true' : 'false'); }); };
+  panels.forEach((p, i) => {
+    const h = p.querySelector(':scope > h3'), title = [...h.childNodes].filter(n => !(n.classList && n.classList.contains('fbtn'))).map(n => n.textContent).join('').trim();
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'sti';
+    const nm = document.createElement('span'); nm.textContent = title.replace(/\s*·.*$/, ''); b.appendChild(nm);
+    const ss = setTocStatus(title); if (ss) { const sm = document.createElement('small'); sm.textContent = ss[0]; if (ss[1]) sm.className = ss[1]; b.appendChild(sm); }
+    b.addEventListener('click', () => { SET_TOC_I = i; moveDot(true); if (p.classList.contains('fold') && p._fk) { st[p._fk] = 0; try { localStorage.setItem('dpbt-setfold', JSON.stringify(st)); } catch (er) {} if (p._fold) p._fold(); } p.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    nav.appendChild(b);
+  });
+  body.insertBefore(nav, body.firstChild); moveDot(false);
+}
 AFTER.search = () => { const c = document.getElementById('srAllCb'); if (c) c.indeterminate = !!S._srSome; fitMeasure('search'); };
 
 // ---- tpl ----
@@ -2226,7 +2496,7 @@ function convFormHTML(P) {
   const modeChk = (k, label, dis) => `<label class="chk"><input type="checkbox" data-mode="${k}" data-change="convMode"${c[k] ? ' checked' : ''}${dis ? ' disabled' : ''}> ${label}</label>`;
   return `<div class="two"><div>
   <div class="panel" data-scope="${P}"><div class="grid">
-  ${fld('TPA/Profile', `<select class="in" data-k="${P}.profile" data-r="1">${optHTML(TPAS, c.profile, 'Chọn TPA/Profile')}</select>`)}
+  <div class="fl"><span>TPA/Profile</span>${segHTML(P + '.profile', TPAS, c.profile, { r: true, label: 'TPA' })}</div>
   ${c.upd ? '' : fld('Ngày lập dự phòng / Ngày thông báo', dtInp(P + '.date'))}</div>
   ${c.upd ? '' : `<div class="bar" style="margin:12px 0">${chk(P + '.tpc', 'TPC', true)}</div>`}
   ${P === 'tool' ? '' : `<label class="box${c.upd ? ' on' : ''}"><input type="checkbox" data-mode="upd" data-change="convMode"${c.upd ? ' checked' : ''}${c.quarter || c.fix ? ' disabled' : ''}> <b>Update dữ liệu còn thiếu</b><br><span class="mut sm">Dò theo TPA + Số HSBT + Số hợp đồng. File có trường nào trong DOB, CCCD, Hình thức điều trị, Chẩn đoán, CSYT thì cập nhật trường đó; ô trống được giữ nguyên. Ngày tổn thất chỉ điền khi hồ sơ trên app đang trống.</span></label>`}
@@ -2235,7 +2505,7 @@ function convFormHTML(P) {
   ${c.upd ? '' : `<div class="box"><span class="mut sm">Xem trước Ghi chú</span><div class="prev" id="pvConv">${esc(np ? np.note : (convNote(c, true) || { note: '' }).note) || '—'}</div></div>`}
   ${c.upd ? '' : `<div class="box"><span class="mut">DATA đang dùng: </span><b class="res-ok">${DB.data.rows.length} dòng DATA dùng chung</b> <a href="#" data-act="convData">Quản lý DATA</a></div>`}
   <div class="act"><button class="btn ok" data-enter-btn data-act="convGo">${btn}</button></div></div></div>
-  <div>${convResultHTML(r)}${c.upd ? `<div class="panel"><p class="mut sm"><b>Update dữ liệu trống</b>: dò theo <b>TPA + Số HSBT + Số hợp đồng</b> trong kho hồ sơ. File có trường nào trong <b>DOB, CCCD, Hình thức điều trị, Chẩn đoán, CSYT</b> thì cập nhật trường đó; ô trống trong file thì giữ nguyên dữ liệu trên app. <b>Ngày tổn thất</b> chỉ điền khi hồ sơ trên app đang trống. File nguồn là file gốc của TPA, đọc theo mapping trong Cài đặt.</p></div>` : ''}<div class="panel"${c.upd ? ' style="display:none"' : ''}><p class="mut sm">Tra theo <b>Số đơn BH ↔ Số HĐ</b> trong DATA: <b>Đơn vị = Mã đơn vị · Phòng ban = Mã đơn vị bỏ số 1 đầu · Đối tượng bảo hiểm = Tên HĐ · Khách hàng = Mã KH</b>. Nếu <b class="warn">Ngày tổn thất nằm ngoài Hiệu lực</b> của Số HĐ, app dừng tạo FULL và xuất Excel lỗi để kiểm tra. FULL không có cột STT.</p></div></div></div>`;
+  <div>${convResultHTML(r)}${c.upd ? `<div class="panel thelp"><p class="mut sm"><b>Update dữ liệu trống</b>: dò theo <b>TPA + Số HSBT + Số hợp đồng</b> trong kho hồ sơ. File có trường nào trong <b>DOB, CCCD, Hình thức điều trị, Chẩn đoán, CSYT</b> thì cập nhật trường đó; ô trống trong file thì giữ nguyên dữ liệu trên app. <b>Ngày tổn thất</b> chỉ điền khi hồ sơ trên app đang trống. File nguồn là file gốc của TPA, đọc theo mapping trong Cài đặt.</p></div>` : ''}<div class="panel"${c.upd ? ' style="display:none"' : ''}><p class="mut sm">Tra theo <b>Số đơn BH ↔ Số HĐ</b> trong DATA: <b>Đơn vị = Mã đơn vị · Phòng ban = Mã đơn vị bỏ số 1 đầu · Đối tượng bảo hiểm = Tên HĐ · Khách hàng = Mã KH</b>. Nếu <b class="warn">Ngày tổn thất nằm ngoài Hiệu lực</b> của Số HĐ, app dừng tạo FULL và xuất Excel lỗi để kiểm tra. FULL không có cột STT.</p></div></div></div>`;
 }
 RENDER.conv = () => convFormHTML('conv');
 function convResultHTML(r, title, noFull) {
@@ -2358,6 +2628,7 @@ ACT.convGo = async () => {
       msgs.push({ t: linkMsg(trkLinkDpbt({ tpa: profile, tpc: !!c.tpc, linkDate: dateISO, texts: nn.note === nnTpl ? [nn.note] : [nn.note, nnTpl], companies: [...new Set(added.map(r => r.contractName))], caseCount: added.length, amount: added.reduce((s, r) => s + r.amount, 0) })) });
     } else msgs.push({ t: 'Không có hồ sơ mới để lưu (tất cả đều trùng hoàn toàn).' });
   }
+  if (c === S.conv && !c.fix && !c.upd && !c.quarter && res.files.full && xlAutoPass('bk', res.files.full)) msgs.push({ t: `File FULL đã tự đưa sang ô file của Bước 2 – Lập bảng kê.` });
   c.result = res; c.confirmSig = ''; renderBody();
 };
 
@@ -2448,11 +2719,11 @@ function fxMatch(tpa, note) {
 function fxFormHTML() {
   const t = S.tool, r = t.fx;
   return `<div class="fxwrap"><div><div class="panel" data-scope="tool"><div class="grid">
-  ${fld('TPA/Profile', `<select class="in" data-k="tool.profile" data-r="1">${optHTML(TPAS, t.profile, 'Chọn TPA/Profile')}</select>`)}</div>
+  <div class="fl"><span>TPA/Profile</span>${segHTML('tool.profile', TPAS, t.profile, { r: true, label: 'TPA' })}</div></div>
   <div class="grid" style="margin-top:12px">${filePick('tool.fixFile', 'File cần dò – File báo lỗi (Số HS TPA · Lỗi)')}${filePick('tool.file', 'File nguồn – DPBT FULL (không có cột STT)')}</div>
   <div class="act"><button class="btn ok" data-enter-btn data-act="fixGo">Tạo file Fix lỗi FTS</button></div></div>
-  ${r ? `<div class="panel"><h3>Kết quả</h3>${r.msgs.map(m => `<p class="${m.cls || ''}">${esc(m.t)}</p>`).join('')}<div class="bar">${r.files.fix ? '<button class="btn pri" data-act="fxDl" data-v="fix">Tải file Fix lỗi FTS</button>' : ''}${r.files.rest ? `<button class="btn dng" data-act="fxDl" data-v="rest">Tải file lỗi còn lại (${r.restN})</button>` : ''}</div></div>` : ''}
-  <div class="panel"><p class="mut sm">Dò theo <b>Số HS TPA</b> trong file báo lỗi. <b>Lỗi 2 số đơn BH / 2 đơn vị</b>: thêm <b>A</b> cuối Số HS. <b>MSG_POLICY_NO_INVALID_REF_NO</b>: giữ Số HS, tô đỏ. File xuất giống file nguồn, chỉ giữ các hồ sơ được dò. Lỗi khác xuất riêng file lỗi còn lại. Không lưu kho hồ sơ.</p></div></div>
+  ${r ? `<div class="panel rescard"><h3>Kết quả</h3>${r.msgs.map(m => `<p class="${m.cls || ''}">${esc(m.t)}</p>`).join('')}<div class="bar">${r.files.fix ? '<button class="btn pri" data-act="fxDl" data-v="fix">Tải file Fix lỗi FTS</button>' : ''}${r.files.rest ? `<button class="btn dng" data-act="fxDl" data-v="rest">Tải file lỗi còn lại (${r.restN})</button>` : ''}</div></div>` : ''}
+  <div class="panel thelp"><p class="mut sm">Dò theo <b>Số HS TPA</b> trong file báo lỗi. <b>Lỗi 2 số đơn BH / 2 đơn vị</b>: thêm <b>A</b> cuối Số HS. <b>MSG_POLICY_NO_INVALID_REF_NO</b>: giữ Số HS, tô đỏ. File xuất giống file nguồn, chỉ giữ các hồ sơ được dò. Lỗi khác xuất riêng file lỗi còn lại. Không lưu kho hồ sơ.</p></div></div>
   <div>${fxPolHTML(r)}</div></div>`;
 }
 function fxPolHTML(r) {
@@ -2604,7 +2875,7 @@ function psFormHTML() {
   const t = S.tool;
   return `<div class="panel" data-scope="tool"><div class="grid">${filePick('tool.file', 'File cần dò (Tên NĐBH · Ngày sinh · CCCD)')}${filePick('tool.listFile', 'File nguồn – báo cáo tổng (Tên NĐBH · Ngày sinh · CMND/CCCD · Số HSBT · Tình trạng bồi thường)')}</div>
   <div class="act"><button class="btn c-teal" data-nc data-enter-btn data-act="psGo">Kiểm tra</button></div>
-  <p class="mut sm" style="margin-top:10px">Đã phát sinh = trùng <b>Tên NĐBH + CCCD</b> với dòng có Tình trạng <b>"Đã giải quyết bồi thường"</b> ở file nguồn. File cần dò có dòng thiếu CCCD thì app báo lỗi, không chạy. Kết quả hiện ngay bên dưới, không xuất file, không lưu vào kho.</p></div>
+  <p class="mut sm thelp" style="margin-top:10px">Đã phát sinh = trùng <b>Tên NĐBH + CCCD</b> với dòng có Tình trạng <b>"Đã giải quyết bồi thường"</b> ở file nguồn. File cần dò có dòng thiếu CCCD thì app báo lỗi, không chạy. Kết quả hiện ngay bên dưới, không xuất file, không lưu vào kho.</p></div>
   ${psResultHTML(t.ps)}`;
 }
 /* ===================== Đối chiếu số tiền (tab Công cụ): File cần dò (DPBT FULL) ↔ File nguồn (Hồ sơ bồi thường TPA) =====================
@@ -2714,21 +2985,24 @@ function dcResultHTML(r) {
 function dcFormHTML() {
   return `<div class="panel" data-scope="tool"><div class="grid">${filePick('tool.file', 'File cần dò – DPBT (Số HSBT TPA · Số tiền DPBT ntệ · Ghi chú)')}${filePick('tool.listFile', 'File nguồn – Hồ sơ bồi thường TPA (Trạng thái · Số HSBT TPA · Tổng tiền)')}</div>
   <div class="act"><button class="btn c-teal" data-nc data-enter-btn data-act="dcGo">Đối chiếu</button></div>
-  <p class="mut sm" style="margin-top:10px">File nguồn: dòng <b>${DC_TA}</b> gom theo <b>Số HSBT TPA</b>, trùng thì <b>cộng Tổng tiền</b>; dòng <b>${DC_DRAFT}</b> báo lỗi. So <b>Số tiền DPBT ntệ ↔ Tổng tiền</b>, lệch từ 1 đồng là báo. Có lỗi thì tải file báo lỗi (DRAFT + lệch/thiếu). Không lỗi và số HS bằng <b>Số lượng HS</b> của đợt (dò theo Ghi chú) thì gắn dấu <b>✓</b> bên Theo dõi HS TPA.</p></div>
+  <p class="mut sm thelp" style="margin-top:10px">File nguồn: dòng <b>${DC_TA}</b> gom theo <b>Số HSBT TPA</b>, trùng thì <b>cộng Tổng tiền</b>; dòng <b>${DC_DRAFT}</b> báo lỗi. So <b>Số tiền DPBT ntệ ↔ Tổng tiền</b>, lệch từ 1 đồng là báo. Có lỗi thì tải file báo lỗi (DRAFT + lệch/thiếu). Không lỗi và số HS bằng <b>Số lượng HS</b> của đợt (dò theo Ghi chú) thì gắn dấu <b>✓</b> bên Theo dõi HS TPA.</p></div>
   ${dcResultHTML(S.tool.dc)}`;
 }
 const TOOL_FN = [['cccd', 'Bổ sung CCCD'], ['fix', 'Fix lỗi FTS'], ['ps', 'Check endors'], ['dc', 'Check nhập liệu'], ['upd', 'Update dữ liệu trống'], ['quarter', 'DPBT quý']];
+ACT.toolHelp = () => { S.tool.help = !S.tool.help; try { localStorage.setItem('dpbt-toolhelp', S.tool.help ? '1' : ''); } catch (e) { /* bỏ qua */ } renderBody(); };
+AFTER.tool = () => { const b = document.getElementById('body'); if (b) b.classList.toggle('nohelp', !S.tool.help); };
 RENDER.tool = () => {
-  const t = S.tool, seg = `<div class="bar" style="margin-bottom:12px">${TOOL_FN.map(([k, l]) => `<button class="btn${t.fn === k ? ' pri' : ''}" data-nc data-act="toolFn" data-v="${k}">${l}</button>`).join('')}</div>`;
+  if (S.tool.help == null) { try { S.tool.help = localStorage.getItem('dpbt-toolhelp') === '1'; } catch (e) { S.tool.help = false; } }
+  const t = S.tool, seg = `<div class="bar tfbar"><div class="sgp tfn" data-sg="toolfn" role="tablist" aria-label="Công cụ"><span class="sgi" aria-hidden="true"></span>${TOOL_FN.map(([k, l]) => `<button type="button" class="sgo${t.fn === k ? ' on' : ''}" role="tab" aria-selected="${t.fn === k}" data-act="toolFn" data-v="${k}">${l}</button>`).join('')}</div><span class="sp"></span><button type="button" class="hlpb${t.help ? ' on' : ''}" data-act="toolHelp" aria-pressed="${!!t.help}" aria-label="Hướng dẫn" title="${t.help ? 'Ẩn hướng dẫn' : 'Hiện hướng dẫn'}">?</button></div>`;
   if (t.fn === 'fix') return seg + fxFormHTML();
   if (t.fn === 'ps') return seg + psFormHTML();
   if (t.fn === 'dc') return seg + dcFormHTML();
   if (t.fn !== 'cccd') return seg + convFormHTML('tool');
   return seg + `<div class="two"><div><div class="panel" data-scope="tool"><div class="grid">
-  ${fld('TPA/Profile', `<select class="in" data-k="tool.profile" data-r="1">${optHTML(TPAS, t.profile, 'Chọn TPA/Profile')}</select>`)}</div>
+  <div class="fl"><span>TPA/Profile</span>${segHTML('tool.profile', TPAS, t.profile, { r: true, label: 'TPA' })}</div></div>
   <div class="grid" style="margin-top:12px">${filePick('tool.file', 'File cần dò – File gốc')}${filePick('tool.listFile', 'File nguồn – Danh sách CCCD (không bắt buộc)')}</div>
   <div class="act"><button class="btn ok" data-enter-btn data-act="ccGo">Bổ sung CCCD</button></div></div></div>
-  <div>${ccResultHTML(t.cc)}<div class="panel"><p class="mut sm">Chỉ xử lý dòng có <b>CCCD trống hoặc có dấu *</b>; dòng đã có CCCD giữ nguyên. CCCD 11 số (không bắt đầu bằng 0) trong file gốc, file danh sách hoặc kho: tự thêm <b>0</b> vào đầu; trong file tải về ghi <b>chữ màu cam</b>.<br>
+  <div>${ccResultHTML(t.cc)}<div class="panel thelp"><p class="mut sm">Chỉ xử lý dòng có <b>CCCD trống hoặc có dấu *</b>; dòng đã có CCCD giữ nguyên. CCCD 11 số (không bắt đầu bằng 0) trong file gốc, file danh sách hoặc kho: tự thêm <b>0</b> vào đầu; trong file tải về ghi <b>chữ màu cam</b>.<br>
   Dò theo <b>Tên NĐBH (bỏ dấu) + DOB</b>, ra nhiều CCCD thì dò thêm <b>Số HĐ</b>. Dò <b>file danh sách</b> trước, không có mới dò <b>kho hồ sơ</b> (toàn bộ kho, mọi TPA); kho còn nhiều CCCD thì lấy theo <b>Ngày lập dự phòng gần nhất</b>.<br>
   File tải về: <b>Số HS TPA – Tên NĐBH – DOB – CCCD</b>, chỉ các hồ sơ đang thiếu CCCD, theo thứ tự file gốc; dòng lỗi ghi ngay trong cột CCCD.</p></div></div></div>`;
 };
@@ -2907,8 +3181,9 @@ ACT.bkGo = async () => {
   const sr = push([cell('GIÁM ĐỐC', tnr({ b: true, h: 'right' })), '', '', cell('PHÒNG KTTH', tnr({ b: true, h: 'center' })), cell('NGƯỜI ĐỀ NGHỊ', tnr({ b: true, h: 'center' })), '', ''], 38.25); merges.push(`E${sr}:F${sr}`, `A${sr}:B${sr}`);
   const sheet = { name: bkSheetName(b, info), rows: out, cols: [11.3, 51.6, 74.7, 125.1, 165.3, 45.7, 15.1], merges, rowHeights: hts, page: { landscape: true } };
   const base = b.outName.trim() ? safeFilePart(b.outName.trim(), 'BK') : 'BK - ' + stdLabel(b.file.name), name = safeFilePart(withTpc(base, b.tpc), 'BK') + '.xlsx';
-  b.result = { msgs, name, u8: XL.write([sheet]) };
+  b.result = { msgs, name, u8: XL.write([sheet]), n: N, total };
   msgs.push({ t: `Đã tạo bảng kê ${N} hồ sơ, tổng ${money(total)} đồng.`, cls: 'res-ok' });
+  if (xlAutoPass('dn', b.result)) msgs.push({ t: 'File bảng kê đã tự đưa sang ô file của Bước 3 – Giấy ĐNTT.' });
   try {
     const lk = trkLinkBangke({ tpa: b.profile, tpc: !!b.tpc, linkDate: todayISO(), texts: [...(b.profile === 'PPY' ? [`${ppyNum(b.cv)}-${String(b.year).trim()}`] : []), info, ...(b.infoMan != null ? [String(b.infoMan)] : []), b.file.name], companies: cO >= 0 ? [...new Set(rows.map(r => cellText(r[cO])).filter(Boolean))] : [], caseCount: N, amount: total });
     const m = linkMsg(lk); if (m) msgs.push({ t: m });
@@ -3064,7 +3339,23 @@ function xlShared() {
     : p === 'PPY' ? fld('Số CV', inp('conv.ppyNo', 'VD: 645')) + fld('Năm', inp('conv.ppyYear', '4 chữ số')) + fld('Tháng', inp('conv.ppyMonth', 'VD: 10')) + fld('Đợt', inp('conv.ppyDot', 'VD: 3'))
     : p === 'FPTIS' ? fld('Số CV', inp('bk.cv', 'VD: 1820')) + fld('Năm', inp('bk.year', '2 hoặc 4 chữ số')) : '';
   return `<div class="panel xlinfo"><div class="xlinfo-h"><h3>Thông tin chung</h3><span class="mut sm">Dùng chung cho cả 3 bước</span><button class="chip xli" data-nc data-act="xlInfo" title="Cách hoạt động">ⓘ Cách hoạt động</button></div>
-  <div class="xlrow">${fld('TPA/Profile', `<select class="in" data-k="conv.profile" data-r="1">${optHTML(TPAS, p, 'Chọn TPA/Profile')}</select>`)}${f}<div class="fl xtpc"><span>&nbsp;</span>${chk('conv.tpc', 'TPC', true)}</div></div></div>`;
+  <div class="xlrow"><div class="fl"><span>TPA/Profile</span>${segHTML('conv.profile', TPAS, p, { r: true, label: 'TPA' })}</div>${f}<div class="fl xtpc"><span>&nbsp;</span>${chk('conv.tpc', 'TPC', true)}</div></div></div>`;
+}
+/* Đường ống 3 bước: hạt đổ màu khi bước chạy xong, dòng tóm tắt trên hạt; bấm hạt để tới cột của bước */
+function xlPipe(dn) {
+  const c = S.conv, b = S.bk, d = S.dn, keys = ['conv', 'bk', 'dntt'], T = ['Chuyển đổi DPBT', 'Lập bảng kê', 'Giấy ĐNTT'], ok = [dn.conv, dn.bk, dn.dntt];
+  const cur = ok.indexOf(false), rows = dn.conv && c.result.rows ? c.result.rows : [];
+  const sum = [dn.conv ? `${rows.length} HS · ${money(rows.reduce((t, r) => t + numAmount(r.amount), 0))}` : '', dn.bk ? `BK ${b.result.n || ''} dòng · ${money(b.result.total || 0)}` : '', dn.dntt ? `Word · ${money(d.result.total || 0)} đồng` : ''];
+  return `<div class="xpipe" role="list" aria-label="Tiến độ 3 bước"><div class="xptrack" aria-hidden="true"><span class="xpfill" style="width:${(cur < 0 ? 100 : Math.max(0, cur - 1) * 50)}%"></span></div>${T.map((t, i) => {
+    const st = ok[i] ? 'done' : i === cur ? 'cur' : '';
+    return `<button type="button" role="listitem" class="xpst ${st}" data-act="xlGo" data-v="${keys[i]}" aria-label="Bước ${i + 1}: ${t}${ok[i] ? ' – đã xong' : ''}"><span class="xpd">${ok[i] ? '✓' : i + 1}</span><b>${t}</b><small>${esc(sum[i] || (i === cur ? 'Đang chờ chạy' : 'Chưa tới'))}</small></button>`;
+  }).join('')}</div>`;
+}
+ACT.xlGo = v => { S.xlFocus = v; AFTER.xl(); };
+/* Chạy xong bước trước: tự đưa file kết quả sang ô file của bước sau nếu ô đó đang trống */
+function xlAutoPass(st, f) {
+  const o = st === 'bk' ? S.bk : S.dn; if (!o || o.file || !f || !f.u8) return false;
+  try { o.file = new File([f.u8], f.name, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); o.fileAuto = f.name; return true; } catch (e) { return false; }
 }
 function xlDone() { return { conv: !!(S.conv.result && S.conv.result.files && S.conv.result.files.full && S.conv.result.kind !== 'upd'), bk: !!(S.bk.result && S.bk.result.u8), dntt: !!(S.dn.result && S.dn.result.u8) }; }
 const xlHead = (n, t, done) => `<h3 class="xlh"><span class="sn${done ? ' ok' : ''}">${done ? '✓' : n}</span>${t}</h3>`;
@@ -3099,7 +3390,7 @@ function xlResult() {
   if (L === 'dn' && S.dn.result) return `<div class="panel"><h3>Kết quả – Bước 3 Giấy ĐNTT</h3>${msgs(S.dn.result)}</div>`;
   return '';
 }
-RENDER.xl = () => { const dn = xlDone(); return `<div class="xlpage">${xlShared()}<div class="xlcols">${xlConvCol(dn.conv)}${xlBkCol(dn.bk)}${xlDnCol(dn.dntt)}</div><div class="xlres">${xlResult()}</div></div>`; };
+RENDER.xl = () => { const dn = xlDone(); return `<div class="xlpage">${xlShared()}${xlPipe(dn)}<div class="xlcols">${xlConvCol(dn.conv)}${xlBkCol(dn.bk)}${xlDnCol(dn.dntt)}</div><div class="xlres">${xlResult()}</div></div>`; };
 AFTER.xl = () => {
   const v = S.xlFocus; if (!v) return; S.xlFocus = '';
   const e = document.getElementById('xc-' + v); if (!e) return;
